@@ -72,7 +72,12 @@ final class RootView: NSView {
     private let loadingIndicator = NSProgressIndicator()
     private let errorBanner = NSView()
     private let errorLabel = NSTextField(labelWithString: "")
+    private let deviceToolbar = NSStackView()
+    private let deviceSearchField = NSSearchField()
+    private let deviceSummaryLabel = NSTextField(labelWithString: "")
+    private let deviceRefreshButton = NSButton()
     private let contentStack = NSStackView()
+    private var deviceFilterText = ""
 
     init(appState: AppState, frame frameRect: NSRect = .zero) {
         self.appState = appState
@@ -118,6 +123,35 @@ final class RootView: NSView {
         errorLabel.font = NSFont.systemFont(ofSize: 13, weight: .regular)
         errorLabel.textColor = .systemRed
         errorLabel.maximumNumberOfLines = 2
+
+        deviceSearchField.placeholderString = "Search devices"
+        deviceSearchField.target = self
+        deviceSearchField.action = #selector(deviceFilterChanged(_:))
+        deviceSearchField.sendsSearchStringImmediately = true
+        deviceSearchField.translatesAutoresizingMaskIntoConstraints = false
+        deviceSearchField.widthAnchor.constraint(greaterThanOrEqualToConstant: 240).isActive = true
+
+        deviceSummaryLabel.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+        deviceSummaryLabel.textColor = .secondaryLabelColor
+        deviceSummaryLabel.lineBreakMode = .byTruncatingTail
+
+        deviceRefreshButton.bezelStyle = .toolbar
+        deviceRefreshButton.image = NSImage(systemSymbolName: "arrow.clockwise", accessibilityDescription: "Refresh")
+        deviceRefreshButton.target = self
+        deviceRefreshButton.action = #selector(refreshInventory)
+        deviceRefreshButton.toolTip = "Refresh inventory"
+
+        deviceToolbar.orientation = .horizontal
+        deviceToolbar.alignment = .centerY
+        deviceToolbar.spacing = 10
+        deviceToolbar.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        deviceToolbar.wantsLayer = true
+        deviceToolbar.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        deviceToolbar.layer?.cornerRadius = 6
+        deviceToolbar.addArrangedSubview(deviceSearchField)
+        deviceToolbar.addArrangedSubview(NSView())
+        deviceToolbar.addArrangedSubview(deviceSummaryLabel)
+        deviceToolbar.addArrangedSubview(deviceRefreshButton)
 
         sidebarStack.orientation = .vertical
         sidebarStack.alignment = .width
@@ -294,10 +328,16 @@ final class RootView: NSView {
         appState.refreshInventory()
     }
 
+    @objc private func deviceFilterChanged(_ sender: NSSearchField) {
+        deviceFilterText = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        render()
+    }
+
     private func render() {
         titleLabel.stringValue = selectedSection.title
         subtitleLabel.stringValue = selectedSection.subtitle
         refreshButton.isEnabled = !snapshot.isRefreshingInventory
+        deviceRefreshButton.isEnabled = !snapshot.isRefreshingInventory
 
         if snapshot.isRefreshingInventory {
             loadingIndicator.startAnimation(nil)
@@ -497,30 +537,50 @@ final class RootView: NSView {
     }
 
     private func makeDeviceViews() -> [NSView] {
+        let filteredDevices = filteredInventory()
+        var views: [NSView] = [makeDeviceToolbar(total: snapshot.inventory.count, visible: filteredDevices.count)]
+
         if snapshot.isRefreshingInventory && snapshot.inventory.isEmpty {
-            return [makeStateView(title: "Loading devices", detail: "")]
+            views.append(makeStateView(title: "Loading devices", detail: ""))
+            return views
         }
 
         if snapshot.inventory.isEmpty {
-            return [makeStateView(title: "No devices found", detail: "")]
+            views.append(makeStateView(title: "No devices found", detail: ""))
+            return views
         }
 
-        var views: [NSView] = []
+        if filteredDevices.isEmpty {
+            views.append(makeStateView(title: "No matching devices", detail: deviceFilterText))
+            return views
+        }
+
         for category in DeviceCategory.allCases {
-            let devices = snapshot.inventory.filter { $0.category == category }
+            let devices = filteredDevices.filter { $0.category == category }
             guard !devices.isEmpty else {
                 continue
             }
 
             views.append(makeSectionHeader(title: category.title, count: devices.count))
-            for device in devices.prefix(6) {
+            for device in devices {
                 views.append(makeDeviceRow(device))
-            }
-            if devices.count > 6 {
-                views.append(makeMutedLabel("+\(devices.count - 6) more"))
             }
         }
         return views
+    }
+
+    private func makeDeviceToolbar(total: Int, visible: Int) -> NSView {
+        if deviceSearchField.stringValue != deviceFilterText {
+            deviceSearchField.stringValue = deviceFilterText
+        }
+
+        if deviceFilterText.isEmpty {
+            deviceSummaryLabel.stringValue = "\(total) devices"
+        } else {
+            deviceSummaryLabel.stringValue = "\(visible) of \(total) devices"
+        }
+
+        return deviceToolbar
     }
 
     private func makeProfileViews() -> [NSView] {
@@ -542,25 +602,49 @@ final class RootView: NSView {
 
     private func makeDeviceRow(_ device: DeviceViewModel) -> NSView {
         let title = makeLabel(device.displayName, size: 13, weight: .medium, color: .labelColor)
-        let subtitle = makeLabel(device.subtitle, size: 12, weight: .regular, color: .secondaryLabelColor)
-        let detail = makeLabel(device.detailLines.prefix(3).joined(separator: "  /  "), size: 11, weight: .regular, color: .tertiaryLabelColor)
-        detail.maximumNumberOfLines = 2
+        title.lineBreakMode = .byTruncatingMiddle
+
+        let subtitle = makeLabel(deviceIdentitySummary(for: device), size: 12, weight: .regular, color: .secondaryLabelColor)
+        subtitle.lineBreakMode = .byTruncatingMiddle
+
+        let detail = makeLabel(deviceDetailSummary(for: device), size: 11, weight: .regular, color: .tertiaryLabelColor)
+        detail.maximumNumberOfLines = 5
+        detail.lineBreakMode = .byTruncatingTail
 
         let textStack = NSStackView(views: [title, subtitle, detail])
         textStack.orientation = .vertical
         textStack.alignment = .leading
-        textStack.spacing = 2
+        textStack.spacing = 3
 
-        let statusLabel = makeStatusLabel(device.isConnected ? "Online" : "Offline")
-        let row = NSStackView(views: [textStack, NSView(), statusLabel])
+        let statusStack = makeDeviceStatusStack(for: device)
+        let row = NSStackView(views: [textStack, NSView(), statusStack])
         row.orientation = .horizontal
         row.alignment = .centerY
         row.spacing = 12
-        row.edgeInsets = NSEdgeInsets(top: 9, left: 12, bottom: 9, right: 12)
+        row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         row.wantsLayer = true
         row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
         row.layer?.cornerRadius = 6
         return row
+    }
+
+    private func makeDeviceStatusStack(for device: DeviceViewModel) -> NSStackView {
+        var labels = [makeStatusLabel(device.isConnected ? "Online" : "Offline")]
+        if device.isDefaultInput {
+            labels.append(makeStatusLabel("Default Input"))
+        }
+        if device.isDefaultOutput {
+            labels.append(makeStatusLabel("Default Output"))
+        }
+        if device.isDefaultSystemOutput {
+            labels.append(makeStatusLabel("System Output"))
+        }
+
+        let stack = NSStackView(views: labels)
+        stack.orientation = .vertical
+        stack.alignment = .trailing
+        stack.spacing = 4
+        return stack
     }
 
     private func makeMetricRow(title: String, value: String, detail: String) -> NSView {
@@ -634,6 +718,102 @@ final class RootView: NSView {
         label.maximumNumberOfLines = 1
         label.lineBreakMode = .byTruncatingTail
         return label
+    }
+
+    private func filteredInventory() -> [DeviceViewModel] {
+        let query = deviceFilterText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else {
+            return snapshot.inventory
+        }
+
+        return snapshot.inventory.filter { device in
+            searchableText(for: device).localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private func searchableText(for device: DeviceViewModel) -> String {
+        var parts = [
+            device.id,
+            device.displayName,
+            device.category.title,
+            device.transport.title,
+            device.connectionState.rawValue
+        ]
+
+        parts.append(contentsOf: [
+            device.vendorName,
+            device.modelName,
+            device.serialNumber
+        ].compactMap { $0 })
+        parts.append(contentsOf: device.detailLines)
+
+        return parts.joined(separator: " ")
+    }
+
+    private func deviceIdentitySummary(for device: DeviceViewModel) -> String {
+        var parts = [
+            device.transport.title,
+            device.connectionState.rawValue
+        ]
+
+        if let maker = manufacturerModelSummary(for: device) {
+            parts.append(maker)
+        }
+
+        if let serialNumber = device.serialNumber {
+            parts.append("Serial: \(serialNumber)")
+        }
+
+        return parts.joined(separator: " / ")
+    }
+
+    private func manufacturerModelSummary(for device: DeviceViewModel) -> String? {
+        let parts = [device.vendorName, device.modelName]
+            .compactMap { value -> String? in
+                guard let value, !value.isEmpty else {
+                    return nil
+                }
+                return value
+            }
+
+        guard !parts.isEmpty else {
+            return nil
+        }
+
+        return parts.joined(separator: " ")
+    }
+
+    private func deviceDetailSummary(for device: DeviceViewModel) -> String {
+        var lines = ["ID: \(device.id)"]
+        lines.append(contentsOf: defaultRoleLines(for: device))
+        lines.append(contentsOf: device.detailLines.filter { detail in
+            !detail.hasPrefix("Transport:") && !detail.hasPrefix("State:")
+        })
+
+        var seen = Set<String>()
+        let uniqueLines = lines.filter { line in
+            if seen.contains(line) {
+                return false
+            }
+            seen.insert(line)
+            return true
+        }
+
+        return uniqueLines.joined(separator: "\n")
+    }
+
+    private func defaultRoleLines(for device: DeviceViewModel) -> [String] {
+        var lines: [String] = []
+        if device.isDefaultInput {
+            lines.append("Role: current default input")
+        }
+        if device.isDefaultOutput {
+            lines.append("Role: current default output")
+        }
+        if device.isDefaultSystemOutput {
+            lines.append("Role: current system output")
+        }
+        return lines
     }
 
     private func activeModeTitle() -> String {

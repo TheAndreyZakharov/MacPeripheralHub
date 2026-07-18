@@ -301,15 +301,15 @@ Commit: `feat(ui): add manual device controls`
 
 ## 17. Devices UI
 
-- [ ] Показать категории устройств секциями.
-- [ ] Для каждого устройства показать имя, transport, manufacturer/model.
-- [ ] Для дисплеев показать resolution/refresh rate/main flag.
-- [ ] Для аудиоустройств показать channels/sample rate/default role flags.
-- [ ] Для камер показать unique id/transport.
-- [ ] Для HID/USB/Bluetooth показать ids и connection metadata.
-- [ ] Добавить поиск или фильтр по устройствам.
-- [ ] Добавить refresh button.
-- [ ] Сделать текст компактным, но читаемым.
+- [x] Показать категории устройств секциями.
+- [x] Для каждого устройства показать имя, transport, manufacturer/model.
+- [x] Для дисплеев показать resolution/refresh rate/main flag.
+- [x] Для аудиоустройств показать channels/sample rate/default role flags.
+- [x] Для камер показать unique id/transport.
+- [x] Для HID/USB/Bluetooth показать ids и connection metadata.
+- [x] Добавить поиск или фильтр по устройствам.
+- [x] Добавить refresh button.
+- [x] Сделать текст компактным, но читаемым.
 
 Commit: `feat(ui): add categorized device inventory`
 
