@@ -144,17 +144,17 @@ Commit: `feat(system): enumerate and switch CoreAudio devices`
 
 ## 6. Reconciliation engine
 
-- [ ] Реализовать C-модуль `mph_reconcile`.
-- [ ] На вход принимать desired state из active profile/manual control.
-- [ ] На вход принимать current state из системных adapters.
-- [ ] Вычислять действия: no-op, set default input, set default output, set system output, mark missing.
-- [ ] Не трогать сохраненный профиль при ручном переключении.
-- [ ] Добавить manual state как отдельный active mode.
-- [ ] Добавить debounce, чтобы не дергать macOS слишком часто.
-- [ ] Добавить retry policy для устройств, которые появились с задержкой.
-- [ ] Добавить tests для сценария: подключили AirPods, macOS сбросила input, приложение вернуло USB mic.
-- [ ] Добавить tests для missing device.
-- [ ] Добавить tests для manual override.
+- [x] Реализовать C-модуль `mph_reconcile`.
+- [x] На вход принимать desired state из active profile/manual control.
+- [x] На вход принимать current state из системных adapters.
+- [x] Вычислять действия: no-op, set default input, set default output, set system output, mark missing.
+- [x] Не трогать сохраненный профиль при ручном переключении.
+- [x] Добавить manual state как отдельный active mode.
+- [x] Добавить debounce, чтобы не дергать macOS слишком часто.
+- [x] Добавить retry policy для устройств, которые появились с задержкой.
+- [x] Добавить tests для сценария: подключили AirPods, macOS сбросила input, приложение вернуло USB mic.
+- [x] Добавить tests для missing device.
+- [x] Добавить tests для manual override.
 
 Commit: `feat(core): enforce selected audio defaults`
 
@@ -484,7 +484,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(storage): add SQLite profile database`
 - [x] `feat(core): model peripheral devices and matching`
 - [x] `feat(system): enumerate and switch CoreAudio devices`
-- [ ] `feat(core): enforce selected audio defaults`
+- [x] `feat(core): enforce selected audio defaults`
 - [ ] `feat(system): watch audio device changes`
 - [ ] `feat(system): enumerate connected displays`
 - [ ] `feat(system): enumerate cameras`

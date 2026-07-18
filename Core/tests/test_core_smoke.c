@@ -282,6 +282,208 @@ static void test_reconcile(void) {
     assert(mph_device_id_equal(&plan.actions[0].target_device_id, &usb_mic));
 }
 
+static void test_reconcile_airpods_reset(void) {
+    mph_device_id_t usb_mic;
+    mph_device_id_t airpods_mic;
+    assert(mph_device_id_from_parts(&usb_mic, "coreaudio.input", "usb-mic") == MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&airpods_mic, "coreaudio.input", "airpods-mic") ==
+           MPH_STATUS_OK);
+
+    mph_selection_t desired;
+    mph_selection_t current;
+    mph_selection_init(&desired);
+    mph_selection_init(&current);
+    desired.mode = MPH_ACTIVE_MODE_PROFILE;
+    current.mode = MPH_ACTIVE_MODE_NONE;
+    assert(mph_selection_set_profile_id(&desired, "studio") == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&desired, MPH_DEVICE_ROLE_DEFAULT_INPUT, &usb_mic) ==
+           MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&current, MPH_DEVICE_ROLE_DEFAULT_INPUT, &airpods_mic) ==
+           MPH_STATUS_OK);
+
+    mph_device_t mic;
+    mph_device_init(&mic);
+    mic.id = usb_mic;
+    assert(mph_device_set_display_name(&mic, "USB Microphone") == MPH_STATUS_OK);
+    mic.category = MPH_DEVICE_CATEGORY_AUDIO_INPUT;
+    mic.transport = MPH_DEVICE_TRANSPORT_USB;
+    mph_device_set_connection_state(&mic, MPH_DEVICE_CONNECTION_CONNECTED);
+
+    mph_device_list_t *available = mph_device_list_create();
+    assert(available != NULL);
+    assert(mph_device_list_append(available, &mic) == MPH_STATUS_OK);
+
+    mph_reconcile_state_t state;
+    mph_reconcile_state_init(&state);
+    mph_reconcile_policy_t policy;
+    mph_reconcile_policy_default(&policy);
+    policy.debounce_interval_ms = 1000;
+
+    mph_reconcile_context_t context;
+    mph_reconcile_context_init(&context);
+    context.desired = &desired;
+    context.current = &current;
+    context.available_devices = available;
+    context.now_unix_ms = 10000;
+
+    mph_reconcile_plan_t plan;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 1);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_SET_DEFAULT_INPUT);
+    assert(mph_device_id_equal(&plan.actions[0].target_device_id, &usb_mic));
+
+    assert(strcmp(desired.profile_id, "studio") == 0);
+    assert(desired.mode == MPH_ACTIVE_MODE_PROFILE);
+
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 0);
+
+    context.now_unix_ms = 11000;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 1);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_SET_DEFAULT_INPUT);
+
+    mph_device_list_destroy(available);
+}
+
+static void test_reconcile_missing_device_retry(void) {
+    mph_device_id_t usb_output;
+    mph_device_id_t airpods_output;
+    assert(mph_device_id_from_parts(&usb_output, "coreaudio.output", "studio-monitors") ==
+           MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&airpods_output, "coreaudio.output", "airpods") ==
+           MPH_STATUS_OK);
+
+    mph_selection_t desired;
+    mph_selection_t current;
+    mph_selection_init(&desired);
+    mph_selection_init(&current);
+    desired.mode = MPH_ACTIVE_MODE_PROFILE;
+    assert(mph_selection_set_role_device(&desired, MPH_DEVICE_ROLE_DEFAULT_OUTPUT, &usb_output) ==
+           MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&current, MPH_DEVICE_ROLE_DEFAULT_OUTPUT,
+                                         &airpods_output) == MPH_STATUS_OK);
+
+    mph_device_list_t *available = mph_device_list_create();
+    assert(available != NULL);
+
+    mph_reconcile_state_t state;
+    mph_reconcile_state_init(&state);
+    mph_reconcile_policy_t policy;
+    mph_reconcile_policy_default(&policy);
+    policy.retry_initial_delay_ms = 1000;
+    policy.retry_max_delay_ms = 4000;
+    policy.max_retry_count = 2;
+
+    mph_reconcile_context_t context;
+    mph_reconcile_context_init(&context);
+    context.desired = &desired;
+    context.current = &current;
+    context.available_devices = available;
+    context.now_unix_ms = 20000;
+
+    mph_reconcile_plan_t plan;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 1);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_MARK_MISSING);
+    assert(state.roles[MPH_DEVICE_ROLE_DEFAULT_OUTPUT].retry_count == 1);
+    assert(mph_reconcile_apply_audio_plan(&plan) == MPH_STATUS_OK);
+
+    context.now_unix_ms = 20500;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 0);
+
+    context.now_unix_ms = 21000;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 1);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_MARK_MISSING);
+    assert(state.roles[MPH_DEVICE_ROLE_DEFAULT_OUTPUT].retry_count == 2);
+
+    context.now_unix_ms = 23000;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 0);
+
+    mph_device_t output;
+    mph_device_init(&output);
+    output.id = usb_output;
+    output.category = MPH_DEVICE_CATEGORY_AUDIO_OUTPUT;
+    mph_device_set_connection_state(&output, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert(mph_device_list_append(available, &output) == MPH_STATUS_OK);
+
+    context.now_unix_ms = 24000;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, &policy, &plan) ==
+           MPH_STATUS_OK);
+    assert(plan.action_count == 1);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_SET_DEFAULT_OUTPUT);
+    assert(state.roles[MPH_DEVICE_ROLE_DEFAULT_OUTPUT].retry_count == 0);
+
+    mph_device_list_destroy(available);
+}
+
+static void test_reconcile_manual_override(void) {
+    mph_device_id_t headphones;
+    mph_device_id_t speakers;
+    assert(mph_device_id_from_parts(&headphones, "coreaudio.output", "headphones") ==
+           MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&speakers, "coreaudio.output", "speakers") == MPH_STATUS_OK);
+
+    mph_selection_t saved_profile;
+    mph_selection_t manual;
+    mph_selection_t current;
+    mph_selection_init(&saved_profile);
+    mph_selection_init(&manual);
+    mph_selection_init(&current);
+    saved_profile.mode = MPH_ACTIVE_MODE_PROFILE;
+    manual.mode = MPH_ACTIVE_MODE_MANUAL;
+    assert(mph_selection_set_profile_id(&saved_profile, "studio") == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&saved_profile, MPH_DEVICE_ROLE_DEFAULT_OUTPUT,
+                                         &speakers) == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&manual, MPH_DEVICE_ROLE_DEFAULT_OUTPUT, &headphones) ==
+           MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&current, MPH_DEVICE_ROLE_DEFAULT_OUTPUT, &speakers) ==
+           MPH_STATUS_OK);
+
+    mph_device_t headphones_device;
+    mph_device_init(&headphones_device);
+    headphones_device.id = headphones;
+    headphones_device.category = MPH_DEVICE_CATEGORY_AUDIO_OUTPUT;
+    mph_device_set_connection_state(&headphones_device, MPH_DEVICE_CONNECTION_CONNECTED);
+
+    mph_device_list_t *available = mph_device_list_create();
+    assert(available != NULL);
+    assert(mph_device_list_append(available, &headphones_device) == MPH_STATUS_OK);
+
+    mph_reconcile_state_t state;
+    mph_reconcile_state_init(&state);
+    mph_reconcile_context_t context;
+    mph_reconcile_context_init(&context);
+    context.desired = &manual;
+    context.current = &current;
+    context.available_devices = available;
+    context.now_unix_ms = 30000;
+
+    mph_reconcile_plan_t plan;
+    assert(mph_reconcile_evaluate_audio_defaults(&context, &state, NULL, &plan) == MPH_STATUS_OK);
+    assert(plan.action_count == 1);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_SET_DEFAULT_OUTPUT);
+    assert(mph_device_id_equal(&plan.actions[0].target_device_id, &headphones));
+
+    const mph_device_id_t *profile_output =
+        mph_selection_get_role_device(&saved_profile, MPH_DEVICE_ROLE_DEFAULT_OUTPUT);
+    assert(mph_device_id_equal(profile_output, &speakers));
+    assert(saved_profile.mode == MPH_ACTIVE_MODE_PROFILE);
+    assert(manual.mode == MPH_ACTIVE_MODE_MANUAL);
+
+    mph_device_list_destroy(available);
+}
+
 static void test_sqlite_profile_storage(void) {
     char db_path[256];
     snprintf(db_path, sizeof(db_path), "/tmp/mph_core_db_test_%ld.sqlite3", (long)getpid());
@@ -368,6 +570,9 @@ int main(void) {
     test_core_audio_live_smoke();
     test_profile_store();
     test_reconcile();
+    test_reconcile_airpods_reset();
+    test_reconcile_missing_device_retry();
+    test_reconcile_manual_override();
     test_sqlite_profile_storage();
 
     printf("PeripheralCore smoke tests passed\n");
