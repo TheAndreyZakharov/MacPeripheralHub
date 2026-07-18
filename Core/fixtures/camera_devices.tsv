@@ -1,0 +1,5 @@
+# unique_id|localized_name|manufacturer|model_id|device_type|transport|is_connected|expected_transport
+FaceTimeHD-001|FaceTime HD Camera|Apple Inc.|AppleCamera|built-in-wide-angle-camera|unknown|1|built_in
+LogitechC920-001|Logitech C920 USB Camera|Logitech|C920|external-camera|unknown|1|usb
+ContinuityCamera-001|Andrey iPhone Continuity Camera|Apple Inc.|iPhoneCamera|continuity-camera|unknown|1|bluetooth
+VirtualCamera-001|OBS Virtual Camera|OBS|VirtualCamera|virtual-camera|virtual|1|virtual

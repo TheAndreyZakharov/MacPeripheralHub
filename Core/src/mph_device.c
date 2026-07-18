@@ -159,6 +159,7 @@ void mph_device_init(mph_device_t *device) {
     device->display.is_main = false;
 
     device->camera.unique_id[0] = '\0';
+    device->camera.supports_global_default = false;
 
     device->hid.vendor_id = 0;
     device->hid.product_id = 0;

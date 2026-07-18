@@ -69,6 +69,7 @@ typedef struct {
 
 typedef struct {
     char unique_id[MPH_DEVICE_TEXT_CAPACITY];
+    bool supports_global_default;
 } mph_camera_characteristics_t;
 
 typedef struct {

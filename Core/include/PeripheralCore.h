@@ -12,6 +12,7 @@
  */
 
 #include "mph_audio_watcher.h"
+#include "mph_camera.h"
 #include "mph_core.h"
 #include "mph_core_audio.h"
 #include "mph_db.h"

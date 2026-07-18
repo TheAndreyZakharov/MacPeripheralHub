@@ -187,15 +187,15 @@ Commit: `feat(system): enumerate connected displays`
 
 ## 9. Cameras
 
-- [ ] Создать adapter для AVFoundation capture devices.
-- [ ] Получать список video devices.
-- [ ] Читать localized name.
-- [ ] Читать unique id.
-- [ ] Читать manufacturer/model metadata, если доступно.
-- [ ] Читать transport type, если доступно.
-- [ ] Отмечать, что глобальный forced default camera в macOS недоступен.
-- [ ] Сохранять preferred camera в профиле как preference.
-- [ ] Покрыть mapper tests.
+- [x] Создать adapter для AVFoundation capture devices.
+- [x] Получать список video devices.
+- [x] Читать localized name.
+- [x] Читать unique id.
+- [x] Читать manufacturer/model metadata, если доступно.
+- [x] Читать transport type, если доступно.
+- [x] Отмечать, что глобальный forced default camera в macOS недоступен.
+- [x] Сохранять preferred camera в профиле как preference.
+- [x] Покрыть mapper tests.
 
 Commit: `feat(system): enumerate cameras`
 
@@ -394,7 +394,7 @@ Commit: `chore(app): add app resources and metadata`
 ## 24. Permissions и privacy
 
 - [ ] Проверить, какие API требуют entitlements или usage descriptions.
-- [ ] Добавить camera usage description, если AVFoundation enumeration требует доступ.
+- [x] Добавить camera usage description, если AVFoundation enumeration требует доступ.
 - [ ] Проверить microphone permission behavior.
 - [ ] Не запрашивать лишние permissions без необходимости.
 - [ ] Документировать ограничения по камерам и HID/USB управлению.

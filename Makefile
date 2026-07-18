@@ -7,12 +7,14 @@ CORE_BUILD_DIR := build/core
 CORE_LIB := $(CORE_BUILD_DIR)/libPeripheralCore.a
 CORE_TEST := $(CORE_BUILD_DIR)/test_core_smoke
 CORE_HEADERS := $(wildcard Core/include/*.h)
-CORE_SOURCES := $(wildcard Core/src/*.c)
-CORE_OBJECTS := $(patsubst Core/src/%.c,$(CORE_BUILD_DIR)/%.o,$(CORE_SOURCES))
+CORE_C_SOURCES := $(wildcard Core/src/*.c)
+CORE_OBJC_SOURCES := $(wildcard Core/src/*.m)
+CORE_OBJECTS := $(patsubst Core/src/%.c,$(CORE_BUILD_DIR)/%.o,$(CORE_C_SOURCES)) $(patsubst Core/src/%.m,$(CORE_BUILD_DIR)/%.o,$(CORE_OBJC_SOURCES))
 CORE_TEST_SOURCES := $(wildcard Core/tests/*.c)
 CC := clang
 CFLAGS := -std=c17 -Wall -Wextra -Werror -pedantic -I Core/include
-CORE_LDFLAGS := -lsqlite3 -framework CoreAudio -framework CoreFoundation -framework CoreGraphics -framework IOKit
+OBJCFLAGS := -fobjc-arc -Wall -Wextra -Werror -I Core/include
+CORE_LDFLAGS := -lsqlite3 -framework CoreAudio -framework CoreFoundation -framework CoreGraphics -framework IOKit -framework AVFoundation -framework Foundation
 
 all: build-app test-core
 
@@ -31,6 +33,10 @@ $(CORE_LIB): $(CORE_OBJECTS)
 $(CORE_BUILD_DIR)/%.o: Core/src/%.c $(CORE_HEADERS)
 	mkdir -p $(CORE_BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(CORE_BUILD_DIR)/%.o: Core/src/%.m $(CORE_HEADERS)
+	mkdir -p $(CORE_BUILD_DIR)
+	$(CC) $(OBJCFLAGS) -c $< -o $@
 
 test-core: $(CORE_LIB) $(CORE_TEST_SOURCES)
 	$(CC) $(CFLAGS) $(CORE_TEST_SOURCES) $(CORE_LIB) $(CORE_LDFLAGS) -o $(CORE_TEST)
