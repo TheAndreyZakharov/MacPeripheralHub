@@ -69,19 +69,19 @@ Commit: `feat(core): add C foundation library`
 
 ## 3. SQLite-хранилище
 
-- [ ] Подключить системную `libsqlite3`.
-- [ ] Создать слой `mph_db`.
-- [ ] Добавить миграции в `Storage/migrations`.
-- [ ] Создать таблицу `profiles`.
-- [ ] Создать таблицу `profile_device_roles`.
-- [ ] Создать таблицу `known_devices`.
-- [ ] Создать таблицу `active_state`.
-- [ ] Создать таблицу `schema_migrations`.
-- [ ] Реализовать открытие базы в Application Support.
-- [ ] Реализовать migration runner.
-- [ ] Реализовать CRUD профилей.
-- [ ] Реализовать сохранение последнего active profile или manual state.
-- [ ] Покрыть миграции и CRUD C-тестами.
+- [x] Подключить системную `libsqlite3`.
+- [x] Создать слой `mph_db`.
+- [x] Добавить миграции в `Storage/migrations`.
+- [x] Создать таблицу `profiles`.
+- [x] Создать таблицу `profile_device_roles`.
+- [x] Создать таблицу `known_devices`.
+- [x] Создать таблицу `active_state`.
+- [x] Создать таблицу `schema_migrations`.
+- [x] Реализовать открытие базы в Application Support.
+- [x] Реализовать migration runner.
+- [x] Реализовать CRUD профилей.
+- [x] Реализовать сохранение последнего active profile или manual state.
+- [x] Покрыть миграции и CRUD C-тестами.
 
 Commit: `feat(storage): add SQLite profile database`
 
@@ -479,9 +479,9 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 
 ## 30. Рекомендуемый порядок первых рабочих коммитов
 
-- [ ] `chore: scaffold macOS app and C core layout`
-- [ ] `feat(core): add C foundation library`
-- [ ] `feat(storage): add SQLite profile database`
+- [x] `chore: scaffold macOS app and C core layout`
+- [x] `feat(core): add C foundation library`
+- [x] `feat(storage): add SQLite profile database`
 - [ ] `feat(core): model peripheral devices and matching`
 - [ ] `feat(system): enumerate and switch CoreAudio devices`
 - [ ] `feat(core): enforce selected audio defaults`

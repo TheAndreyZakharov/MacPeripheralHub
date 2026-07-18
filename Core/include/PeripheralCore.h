@@ -6,11 +6,13 @@
  - Functions with _create return owned pointers; release them with the matching _destroy function.
  - Functions with _init initialize caller-owned stack or embedded values.
  - Functions with _append and _save copy the passed value into the target collection/store.
- - Functions with _get and _find return borrowed pointers that remain valid until mutation or destroy.
+ - Functions with _get and _find return borrowed pointers that remain valid until mutation or
+ destroy.
  - String pointers returned by *_cstr/name/version functions are borrowed and must not be freed.
  */
 
 #include "mph_core.h"
+#include "mph_db.h"
 #include "mph_device.h"
 #include "mph_device_id.h"
 #include "mph_device_list.h"

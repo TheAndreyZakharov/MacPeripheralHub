@@ -11,7 +11,9 @@
 		1A2B3C4D5E6F708190A0B0C2 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B002 /* MainWindowController.swift */; };
 		1A2B3C4D5E6F708190A0B0C3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B003 /* RootView.swift */; };
 		2B3C4D5E6F708190A0B0C001 /* libPeripheralCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */; };
+		2B3C4D5E6F708190A0B0C002 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */; };
 		2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S011 /* mph_core.c */; };
+		2B3C4D5E6F708190A0B0C022 /* mph_db.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S022 /* mph_db.c */; };
 		2B3C4D5E6F708190A0B0C012 /* mph_device.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S012 /* mph_device.c */; };
 		2B3C4D5E6F708190A0B0C013 /* mph_device_id.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */; };
 		2B3C4D5E6F708190A0B0C014 /* mph_device_list.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */; };
@@ -41,9 +43,11 @@
 		1A2B3C4D5E6F708190A0B004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B005 /* MacPeripheralHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacPeripheralHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPeripheralCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PeripheralCore.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H002 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H003 /* mph_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_core.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H014 /* mph_db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_db.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H004 /* mph_device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H005 /* mph_device_id.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device_id.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H006 /* mph_device_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device_list.h; sourceTree = "<group>"; };
@@ -55,6 +59,7 @@
 		2B3C4D5E6F708190A0B0H012 /* mph_selection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_selection.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H013 /* mph_time.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_time.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S011 /* mph_core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_core.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S022 /* mph_db.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_db.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S012 /* mph_device.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device_id.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device_list.c; sourceTree = "<group>"; };
@@ -73,6 +78,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B3C4D5E6F708190A0B0C001 /* libPeripheralCore.a in Frameworks */,
+				2B3C4D5E6F708190A0B0C002 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,6 +116,7 @@
 			children = (
 				1A2B3C4D5E6F708190A0B005 /* MacPeripheralHub.app */,
 				2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */,
+				2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -154,6 +161,7 @@
 				2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */,
 				2B3C4D5E6F708190A0B0H002 /* module.modulemap */,
 				2B3C4D5E6F708190A0B0H003 /* mph_core.h */,
+				2B3C4D5E6F708190A0B0H014 /* mph_db.h */,
 				2B3C4D5E6F708190A0B0H004 /* mph_device.h */,
 				2B3C4D5E6F708190A0B0H005 /* mph_device_id.h */,
 				2B3C4D5E6F708190A0B0H006 /* mph_device_list.h */,
@@ -172,6 +180,7 @@
 			isa = PBXGroup;
 			children = (
 				2B3C4D5E6F708190A0B0S011 /* mph_core.c */,
+				2B3C4D5E6F708190A0B0S022 /* mph_db.c */,
 				2B3C4D5E6F708190A0B0S012 /* mph_device.c */,
 				2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */,
 				2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */,
@@ -286,6 +295,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */,
+				2B3C4D5E6F708190A0B0C022 /* mph_db.c in Sources */,
 				2B3C4D5E6F708190A0B0C012 /* mph_device.c in Sources */,
 				2B3C4D5E6F708190A0B0C013 /* mph_device_id.c in Sources */,
 				2B3C4D5E6F708190A0B0C014 /* mph_device_list.c in Sources */,

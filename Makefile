@@ -12,6 +12,7 @@ CORE_OBJECTS := $(patsubst Core/src/%.c,$(CORE_BUILD_DIR)/%.o,$(CORE_SOURCES))
 CORE_TEST_SOURCES := $(wildcard Core/tests/*.c)
 CC := clang
 CFLAGS := -std=c17 -Wall -Wextra -Werror -pedantic -I Core/include
+CORE_LDFLAGS := -lsqlite3
 
 all: build-app test-core
 
@@ -32,7 +33,7 @@ $(CORE_BUILD_DIR)/%.o: Core/src/%.c $(CORE_HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test-core: $(CORE_LIB) $(CORE_TEST_SOURCES)
-	$(CC) $(CFLAGS) $(CORE_TEST_SOURCES) $(CORE_LIB) -o $(CORE_TEST)
+	$(CC) $(CFLAGS) $(CORE_TEST_SOURCES) $(CORE_LIB) $(CORE_LDFLAGS) -o $(CORE_TEST)
 	$(CORE_TEST)
 
 test-all: build-app test-core

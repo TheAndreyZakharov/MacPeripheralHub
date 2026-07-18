@@ -58,9 +58,8 @@ mph_status_t mph_reconcile_audio_defaults(const mph_selection_t *desired,
             continue;
         }
 
-        mph_status_t status =
-            mph_reconcile_plan_add(plan, audio_roles[index].action_type, audio_roles[index].role,
-                                   desired_id);
+        mph_status_t status = mph_reconcile_plan_add(plan, audio_roles[index].action_type,
+                                                     audio_roles[index].role, desired_id);
         if (!mph_status_is_ok(status)) {
             return status;
         }

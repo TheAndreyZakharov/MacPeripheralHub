@@ -75,9 +75,9 @@ mph_status_t mph_device_set_model_name(mph_device_t *device, const char *model_n
 }
 
 mph_status_t mph_device_set_serial_number(mph_device_t *device, const char *serial_number) {
-    return device != NULL ? copy_text(device->serial_number, MPH_DEVICE_SERIAL_CAPACITY,
-                                      serial_number)
-                          : MPH_STATUS_INVALID_ARGUMENT;
+    return device != NULL
+               ? copy_text(device->serial_number, MPH_DEVICE_SERIAL_CAPACITY, serial_number)
+               : MPH_STATUS_INVALID_ARGUMENT;
 }
 
 const char *mph_device_category_name(mph_device_category_t category) {
