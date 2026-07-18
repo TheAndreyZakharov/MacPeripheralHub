@@ -1,0 +1,3 @@
+cd /Users/andrey/Documents/projects/MacPeripheralHub
+source venv/bin/activate
+deactivate
