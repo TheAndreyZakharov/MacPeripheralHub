@@ -17,13 +17,13 @@
 
 ## 1. Создание структуры проекта
 
-- [ ] Создать Xcode/macOS проект `MacPeripheralHub`.
-- [ ] Тип приложения: macOS App.
-- [ ] UI stack: AppKit + Swift.
-- [ ] Minimum macOS выбрать осознанно, желательно macOS 13+, чтобы использовать `SMAppService` для Login Items.
-- [ ] Добавить bundle id, например `com.theandreyzakharov.MacPeripheralHub`.
-- [ ] Настроить app version `1.0.0` и build number `1`.
-- [ ] Создать структуру директорий:
+- [x] Создать Xcode/macOS проект `MacPeripheralHub`.
+- [x] Тип приложения: macOS App.
+- [x] UI stack: AppKit + Swift.
+- [x] Minimum macOS выбрать осознанно, желательно macOS 13+, чтобы использовать `SMAppService` для Login Items.
+- [x] Добавить bundle id, например `com.theandreyzakharov.MacPeripheralHub`.
+- [x] Настроить app version `1.0.0` и build number `1`.
+- [x] Создать структуру директорий:
   - `MacPeripheralHub/App`
   - `MacPeripheralHub/UI`
   - `MacPeripheralHub/MenuBar`
@@ -37,9 +37,10 @@
   - `Storage/migrations`
   - `scripts`
   - `docs`
-- [ ] Добавить `.clang-format` для C-кода.
-- [ ] Добавить базовый `Makefile` для сборки и тестов C-core отдельно от Xcode.
-- [ ] Проверить, что пустой app запускается и показывает окно.
+- [x] Добавить `.clang-format` для C-кода.
+- [x] Добавить базовый `Makefile` для сборки и тестов C-core отдельно от Xcode.
+- [x] Добавить стартовые scripts для build, release build, run и stop приложения.
+- [x] Проверить, что пустой app запускается и показывает окно.
 
 Commit: `chore: scaffold macOS app and C core layout`
 
@@ -434,8 +435,11 @@ Commit: `test(app): verify macOS device switching flows`
 
 ## 27. Build scripts
 
-- [ ] Добавить `scripts/build_debug.sh`.
-- [ ] Добавить `scripts/build_release.sh`.
+- [x] Добавить `scripts/build_debug.sh`.
+- [x] Добавить `scripts/build_app.sh`.
+- [x] Добавить `scripts/build_release.sh`.
+- [x] Добавить `scripts/run_app.sh`.
+- [x] Добавить `scripts/stop_app.sh`.
 - [ ] Добавить `scripts/test_core.sh`.
 - [ ] Добавить `scripts/test_all.sh`.
 - [ ] Добавить `scripts/package_app.sh`, если нужен локальный `.app` artifact.
