@@ -386,24 +386,114 @@ final class RootView: NSView {
         var views: [NSView] = [
             makeMetricRow(
                 title: "Active Mode",
-                value: snapshot.activeSelection.mode.rawValue,
+                value: activeModeTitle(),
                 detail: activeProfileName()
             )
         ]
 
-        for role in DeviceRole.allCases {
-            let selectedID = snapshot.activeSelection.deviceID(for: role)
-            let selectedDevice = selectedID.flatMap(device(namedBy:))
-            views.append(
-                makeMetricRow(
-                    title: role.title,
-                    value: selectedDevice?.displayName ?? "Not selected",
-                    detail: selectedDevice?.subtitle ?? selectedID ?? "No active device"
-                )
-            )
-        }
+        views.append(makeSectionHeader(title: "Current System Defaults", count: 3))
+        views.append(makeCurrentDefaultRow(for: .defaultInput))
+        views.append(makeCurrentDefaultRow(for: .defaultOutput))
+        views.append(makeCurrentDefaultRow(for: .systemOutput))
+
+        views.append(makeSectionHeader(title: "Manual Selection", count: DeviceRole.allCases.count))
+        views.append(contentsOf: DeviceRole.allCases.map(makeManualPickerRow))
 
         return views
+    }
+
+    private func makeCurrentDefaultRow(for role: DeviceRole) -> NSView {
+        let currentDevice = currentDefaultDevice(for: role)
+        let selectedID = snapshot.activeSelection.deviceID(for: role)
+        let fallbackDetail = selectedID.map { selectedDeviceDetail(for: $0) } ?? "No active device"
+
+        return makeMetricRow(
+            title: role.title,
+            value: currentDevice?.displayName ?? "Not selected",
+            detail: currentDevice.map(deviceDetail) ?? fallbackDetail
+        )
+    }
+
+    private func makeManualPickerRow(for role: DeviceRole) -> NSView {
+        let roleLabel = makeLabel(role.title, size: 13, weight: .medium, color: .secondaryLabelColor)
+        let currentLabel = makeLabel(currentRoleSummary(for: role), size: 12, weight: .regular, color: .tertiaryLabelColor)
+        currentLabel.lineBreakMode = .byTruncatingMiddle
+
+        let labelStack = NSStackView(views: [roleLabel, currentLabel])
+        labelStack.orientation = .vertical
+        labelStack.alignment = .leading
+        labelStack.spacing = 2
+
+        let picker = NSPopUpButton()
+        picker.bezelStyle = .rounded
+        picker.target = self
+        picker.action = #selector(manualPickerChanged(_:))
+        picker.tag = tag(for: role)
+        picker.toolTip = role.title
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.widthAnchor.constraint(greaterThanOrEqualToConstant: 280).isActive = true
+
+        populatePicker(picker, for: role)
+
+        let row = NSStackView(views: [labelStack, NSView(), picker])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        row.wantsLayer = true
+        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.cornerRadius = 6
+        return row
+    }
+
+    private func populatePicker(_ picker: NSPopUpButton, for role: DeviceRole) {
+        picker.removeAllItems()
+
+        let selectedID = snapshot.activeSelection.deviceID(for: role)
+        let currentID = currentDefaultDevice(for: role)?.id
+        let preferredID = selectedID ?? currentID
+        let candidates = candidateDevices(for: role)
+
+        if candidates.isEmpty && preferredID == nil {
+            picker.addItem(withTitle: "No devices available")
+            picker.lastItem?.isEnabled = false
+            return
+        }
+
+        picker.addItem(withTitle: "Not selected")
+        picker.lastItem?.isEnabled = false
+
+        var knownIDs = Set<String>()
+        for device in candidates {
+            knownIDs.insert(device.id)
+            picker.addItem(withTitle: pickerTitle(for: device))
+            picker.lastItem?.representedObject = device.id
+            picker.lastItem?.isEnabled = device.isConnected
+        }
+
+        if let preferredID, !knownIDs.contains(preferredID) {
+            picker.addItem(withTitle: "Missing: \(preferredID)")
+            picker.lastItem?.representedObject = preferredID
+            picker.lastItem?.isEnabled = false
+        }
+
+        if let preferredID,
+           let item = picker.itemArray.first(where: { representedString(from: $0) == preferredID }) {
+            picker.select(item)
+        } else {
+            picker.selectItem(at: 0)
+        }
+    }
+
+    @objc private func manualPickerChanged(_ sender: NSPopUpButton) {
+        guard let role = role(for: sender.tag),
+              let selectedID = representedString(from: sender.selectedItem),
+              let selectedDevice = device(namedBy: selectedID),
+              selectedDevice.isConnected else {
+            return
+        }
+
+        appState.setManualDevice(selectedID, for: role)
     }
 
     private func makeDeviceViews() -> [NSView] {
@@ -546,6 +636,17 @@ final class RootView: NSView {
         return label
     }
 
+    private func activeModeTitle() -> String {
+        switch snapshot.activeSelection.mode {
+        case .none:
+            return "None"
+        case .profile:
+            return "Profile"
+        case .manual:
+            return "Manual Control"
+        }
+    }
+
     private func activeProfileName() -> String {
         guard snapshot.activeSelection.mode == .profile,
               let profileID = snapshot.activeSelection.profileID else {
@@ -557,5 +658,123 @@ final class RootView: NSView {
 
     private func device(namedBy id: String) -> DeviceViewModel? {
         snapshot.inventory.first { $0.id == id }
+    }
+
+    private func currentDefaultDevice(for role: DeviceRole) -> DeviceViewModel? {
+        switch role {
+        case .defaultInput:
+            return snapshot.inventory.first { $0.isDefaultInput }
+        case .defaultOutput:
+            return snapshot.inventory.first { $0.isDefaultOutput }
+        case .systemOutput:
+            return snapshot.inventory.first { $0.isDefaultSystemOutput }
+        case .preferredCamera:
+            guard let selectedID = snapshot.activeSelection.deviceID(for: role) else {
+                return nil
+            }
+            return device(namedBy: selectedID)
+        }
+    }
+
+    private func candidateDevices(for role: DeviceRole) -> [DeviceViewModel] {
+        let categories: Set<DeviceCategory>
+        switch role {
+        case .defaultInput:
+            categories = [.audioInput]
+        case .defaultOutput:
+            categories = [.audioOutput]
+        case .systemOutput:
+            categories = [.audioSystemOutput]
+        case .preferredCamera:
+            categories = [.camera]
+        }
+
+        return snapshot.inventory
+            .filter { categories.contains($0.category) }
+            .sorted { left, right in
+                if left.isConnected != right.isConnected {
+                    return left.isConnected && !right.isConnected
+                }
+                if left.displayName.localizedCaseInsensitiveCompare(right.displayName) != .orderedSame {
+                    return left.displayName.localizedCaseInsensitiveCompare(right.displayName) == .orderedAscending
+                }
+                return left.id < right.id
+            }
+    }
+
+    private func currentRoleSummary(for role: DeviceRole) -> String {
+        let selectedID = snapshot.activeSelection.deviceID(for: role)
+        let selectedDevice = selectedID.flatMap(device(namedBy:))
+
+        if let selectedDevice {
+            return selectedDevice.isConnected
+                ? "Selected: \(selectedDevice.displayName)"
+                : "Selected offline: \(selectedDevice.displayName)"
+        }
+
+        if let selectedID {
+            return "Missing: \(selectedID)"
+        }
+
+        if let currentDevice = currentDefaultDevice(for: role) {
+            return "Current: \(currentDevice.displayName)"
+        }
+
+        return "Not selected"
+    }
+
+    private func selectedDeviceDetail(for deviceID: String) -> String {
+        guard let device = device(namedBy: deviceID) else {
+            return "Missing: \(deviceID)"
+        }
+
+        return deviceDetail(device)
+    }
+
+    private func deviceDetail(_ device: DeviceViewModel) -> String {
+        let state = device.isConnected ? "Online" : "Offline"
+        return "\(state) / \(device.subtitle)"
+    }
+
+    private func pickerTitle(for device: DeviceViewModel) -> String {
+        device.isConnected ? device.displayName : "\(device.displayName) (offline)"
+    }
+
+    private func representedString(from item: NSMenuItem?) -> String? {
+        if let value = item?.representedObject as? String {
+            return value
+        }
+        if let value = item?.representedObject as? NSString {
+            return value as String
+        }
+        return nil
+    }
+
+    private func tag(for role: DeviceRole) -> Int {
+        switch role {
+        case .defaultInput:
+            return 1001
+        case .defaultOutput:
+            return 1002
+        case .systemOutput:
+            return 1003
+        case .preferredCamera:
+            return 1004
+        }
+    }
+
+    private func role(for tag: Int) -> DeviceRole? {
+        switch tag {
+        case 1001:
+            return .defaultInput
+        case 1002:
+            return .defaultOutput
+        case 1003:
+            return .systemOutput
+        case 1004:
+            return .preferredCamera
+        default:
+            return nil
+        }
     }
 }

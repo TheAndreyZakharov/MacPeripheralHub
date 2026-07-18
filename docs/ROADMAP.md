@@ -285,17 +285,17 @@ Commit: `feat(ui): add main application window`
 
 ## 16. Manual Control UI
 
-- [ ] Показать текущий active mode: profile или manual.
-- [ ] Показать current default input.
-- [ ] Показать current default output.
-- [ ] Показать current default system output.
-- [ ] Добавить picker микрофона.
-- [ ] Добавить picker аудиовыхода.
-- [ ] Добавить picker system output.
-- [ ] Добавить preferred camera picker как preference.
-- [ ] При выборе устройства переводить состояние в `Manual Control`.
-- [ ] После выбора сразу применять системный default, если это аудиороль.
-- [ ] Показывать missing/offline devices в понятном виде.
+- [x] Показать текущий active mode: profile или manual.
+- [x] Показать current default input.
+- [x] Показать current default output.
+- [x] Показать current default system output.
+- [x] Добавить picker микрофона.
+- [x] Добавить picker аудиовыхода.
+- [x] Добавить picker system output.
+- [x] Добавить preferred camera picker как preference.
+- [x] При выборе устройства переводить состояние в `Manual Control`.
+- [x] После выбора сразу применять системный default, если это аудиороль.
+- [x] Показывать missing/offline devices в понятном виде.
 
 Commit: `feat(ui): add manual device controls`
 
