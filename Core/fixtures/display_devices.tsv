@@ -1,0 +1,5 @@
+# display_id|name|vendor_name|model_name|serial_number|vendor_id|product_id|serial_numeric|width_px|height_px|refresh_rate_hz|is_main|is_builtin|is_online|transport|expected_transport
+1|Built-in Liquid Retina Display|Apple|Liquid Retina|BUILTIN-001|1552|1|1001|3456|2234|120|1|1|1|unknown|built_in
+2|LG UltraFine DisplayPort|LG|UltraFine|LG-001|7789|4096|2002|3840|2160|60|0|0|1|unknown|display_port
+3|Conference Room HDMI Projector|Epson|Projector|HDMI-001|1111|2222|0|1920|1080|60|0|0|1|unknown|hdmi
+4|Thunderbolt Studio Display|Apple|Studio Display|TB-001|1452|6170|3003|5120|2880|60|0|0|1|unknown|thunderbolt

@@ -172,16 +172,16 @@ Commit: `feat(system): watch audio device changes`
 
 ## 8. Displays
 
-- [ ] Создать adapter для CoreGraphics/IOKit display APIs.
-- [ ] Получать список подключенных дисплеев.
-- [ ] Определять built-in/external.
-- [ ] Читать разрешение.
-- [ ] Читать refresh rate, если доступен.
-- [ ] Читать main display flag.
-- [ ] Читать connection/vendor/model metadata через IOKit, если доступно.
-- [ ] Категоризировать HDMI/DisplayPort/Thunderbolt по доступным данным.
-- [ ] Показывать неизвестный connection type как `unknown`, если macOS не отдала точную информацию.
-- [ ] Добавить mapper tests на fixtures.
+- [x] Создать adapter для CoreGraphics/IOKit display APIs.
+- [x] Получать список подключенных дисплеев.
+- [x] Определять built-in/external.
+- [x] Читать разрешение.
+- [x] Читать refresh rate, если доступен.
+- [x] Читать main display flag.
+- [x] Читать connection/vendor/model metadata через IOKit, если доступно.
+- [x] Категоризировать HDMI/DisplayPort/Thunderbolt по доступным данным.
+- [x] Показывать неизвестный connection type как `unknown`, если macOS не отдала точную информацию.
+- [x] Добавить mapper tests на fixtures.
 
 Commit: `feat(system): enumerate connected displays`
 

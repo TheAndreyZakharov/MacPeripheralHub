@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #define FIXTURE_FIELD_COUNT 12
+#define DISPLAY_FIXTURE_FIELD_COUNT 16
 
 typedef struct {
     pthread_mutex_t mutex;
@@ -86,14 +87,14 @@ static void test_device_list(void) {
     mph_device_list_destroy(list);
 }
 
-static size_t split_fixture_line(char *line, char *fields[FIXTURE_FIELD_COUNT]) {
+static size_t split_fields(char *line, char **fields, size_t capacity) {
     size_t count = 0;
     char *field_start = line;
 
     for (char *cursor = line; *cursor != '\0'; cursor += 1) {
         if (*cursor == '|' || *cursor == '\n' || *cursor == '\r') {
             *cursor = '\0';
-            if (count < FIXTURE_FIELD_COUNT) {
+            if (count < capacity) {
                 fields[count] = field_start;
                 count += 1;
             }
@@ -101,7 +102,7 @@ static size_t split_fixture_line(char *line, char *fields[FIXTURE_FIELD_COUNT]) 
         }
     }
 
-    if (count < FIXTURE_FIELD_COUNT && field_start[0] != '\0') {
+    if (count < capacity && field_start[0] != '\0') {
         fields[count] = field_start;
         count += 1;
     }
@@ -109,8 +110,20 @@ static size_t split_fixture_line(char *line, char *fields[FIXTURE_FIELD_COUNT]) 
     return count;
 }
 
+static size_t split_fixture_line(char *line, char *fields[FIXTURE_FIELD_COUNT]) {
+    return split_fields(line, fields, FIXTURE_FIELD_COUNT);
+}
+
 static uint32_t fixture_u32(const char *value) {
     return value != NULL && value[0] != '\0' ? (uint32_t)strtoul(value, NULL, 10) : 0;
+}
+
+static double fixture_double(const char *value) {
+    return value != NULL && value[0] != '\0' ? strtod(value, NULL) : 0.0;
+}
+
+static bool fixture_bool(const char *value) {
+    return value != NULL && strcmp(value, "1") == 0;
 }
 
 static void test_device_modeling_from_fixture(void) {
@@ -252,6 +265,65 @@ static void test_core_audio_mapper(void) {
     mph_device_list_destroy(list);
 }
 
+static void test_display_mapper(void) {
+    FILE *fixture = fopen("Core/fixtures/display_devices.tsv", "r");
+    assert(fixture != NULL);
+
+    char line[1024];
+    size_t parsed_devices = 0;
+    while (fgets(line, sizeof(line), fixture) != NULL) {
+        if (line[0] == '#') {
+            continue;
+        }
+
+        char *fields[DISPLAY_FIXTURE_FIELD_COUNT] = {0};
+        size_t field_count = split_fields(line, fields, DISPLAY_FIXTURE_FIELD_COUNT);
+        assert(field_count == DISPLAY_FIXTURE_FIELD_COUNT);
+
+        mph_display_raw_device_t raw_device;
+        mph_display_raw_device_init(&raw_device);
+        raw_device.display_id = fixture_u32(fields[0]);
+        snprintf(raw_device.name, sizeof(raw_device.name), "%s", fields[1]);
+        snprintf(raw_device.vendor_name, sizeof(raw_device.vendor_name), "%s", fields[2]);
+        snprintf(raw_device.model_name, sizeof(raw_device.model_name), "%s", fields[3]);
+        snprintf(raw_device.serial_number, sizeof(raw_device.serial_number), "%s", fields[4]);
+        raw_device.vendor_id = fixture_u32(fields[5]);
+        raw_device.product_id = fixture_u32(fields[6]);
+        raw_device.serial_numeric = fixture_u32(fields[7]);
+        raw_device.width_px = fixture_u32(fields[8]);
+        raw_device.height_px = fixture_u32(fields[9]);
+        raw_device.refresh_rate_hz = fixture_double(fields[10]);
+        raw_device.is_main = fixture_bool(fields[11]);
+        raw_device.is_builtin = fixture_bool(fields[12]);
+        raw_device.is_online = fixture_bool(fields[13]);
+        raw_device.transport = mph_device_transport_from_name(fields[14]);
+
+        mph_device_transport_t expected_transport = mph_device_transport_from_name(fields[15]);
+        assert(mph_display_infer_transport(&raw_device) == expected_transport);
+
+        mph_device_t device;
+        assert(mph_display_map_raw_device(&raw_device, &device) == MPH_STATUS_OK);
+        assert(!mph_device_id_is_empty(&device.id));
+        assert(device.category == MPH_DEVICE_CATEGORY_DISPLAY);
+        assert(device.transport == expected_transport);
+        assert(device.connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+        assert(device.is_connected);
+        assert(device.display.width_px == raw_device.width_px);
+        assert(device.display.height_px == raw_device.height_px);
+        assert(device.display.refresh_rate_hz == raw_device.refresh_rate_hz);
+        assert(device.display.is_main == raw_device.is_main);
+        assert(strcmp(device.display_name, raw_device.name) == 0);
+        assert(strcmp(device.vendor_name, raw_device.vendor_name) == 0);
+        assert(strcmp(device.model_name, raw_device.model_name) == 0);
+        assert(strcmp(device.serial_number, raw_device.serial_number) == 0);
+
+        parsed_devices += 1;
+    }
+
+    fclose(fixture);
+    assert(parsed_devices == 4);
+}
+
 static void test_core_audio_live_smoke(void) {
     mph_device_list_t *list = mph_device_list_create();
     assert(list != NULL);
@@ -277,6 +349,27 @@ static void test_core_audio_live_smoke(void) {
     assert(mph_device_id_from_parts(&missing_id, "coreaudio.input", "missing-device-for-test") ==
            MPH_STATUS_OK);
     assert(mph_core_audio_set_default_input(&missing_id) == MPH_STATUS_NOT_FOUND);
+
+    mph_device_list_destroy(list);
+}
+
+static void test_display_live_smoke(void) {
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_display_enumerate_devices(list) == MPH_STATUS_OK);
+
+    bool has_main_display = false;
+    for (size_t index = 0; index < mph_device_list_count(list); index += 1) {
+        const mph_device_t *device = mph_device_list_get(list, index);
+        assert(device != NULL);
+        assert(!mph_device_id_is_empty(&device->id));
+        assert(device->category == MPH_DEVICE_CATEGORY_DISPLAY);
+        assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+        assert(device->display.width_px > 0);
+        assert(device->display.height_px > 0);
+        has_main_display = has_main_display || device->display.is_main;
+    }
+    assert(mph_device_list_count(list) == 0 || has_main_display);
 
     mph_device_list_destroy(list);
 }
@@ -673,7 +766,9 @@ int main(void) {
     test_device_modeling_from_fixture();
     test_device_normalization_and_matching();
     test_core_audio_mapper();
+    test_display_mapper();
     test_core_audio_live_smoke();
+    test_display_live_smoke();
     test_audio_watcher_live_smoke();
     test_profile_store();
     test_reconcile();
