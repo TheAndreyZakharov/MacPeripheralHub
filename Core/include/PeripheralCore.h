@@ -28,5 +28,6 @@
 #include "mph_result.h"
 #include "mph_selection.h"
 #include "mph_time.h"
+#include "mph_usb.h"
 
 #endif

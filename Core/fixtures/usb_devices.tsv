@@ -1,0 +1,7 @@
+# product_name|vendor_name|serial_number|vendor_id|product_id|device_class|device_subclass|device_protocol|interface_class_mask|speed_mbps|power_ma|location_id|registry_id|parent_registry_id|depth|is_connected|expected_category|expected_match_category
+USB-C Hub|Anker|HUB-001|10429|2048|9|0|0|0|5000|900|33554432|2001|1001|5|1|hub|none
+Thunderbolt Dock|CalDigit|DOCK-001|8457|4352|0|0|0|0|10000|1500|33554433|2002|1001|5|1|dock|none
+Scarlett 2i2 USB Audio|Focusrite|AUDIO-001|1235|22137|0|0|0|2|480|500|33554434|2003|1001|5|1|audio_interface|audio_output
+Logitech C920 HD Pro Webcam|Logitech|CAM-001|1133|2093|239|2|1|16384|480|500|33554435|2004|1001|5|1|camera|camera
+Magic Keyboard USB|Apple|HID-001|1452|834|0|0|0|8|480|100|33554436|2005|1001|5|1|keyboard|keyboard
+Generic USB Device|||0|0|0|0|0|0|0|0|0|2006|1001|5|1|unknown|none

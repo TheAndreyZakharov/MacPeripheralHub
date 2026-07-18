@@ -14,6 +14,7 @@
 #define DISPLAY_FIXTURE_FIELD_COUNT 16
 #define CAMERA_FIXTURE_FIELD_COUNT 8
 #define HID_FIXTURE_FIELD_COUNT 12
+#define USB_FIXTURE_FIELD_COUNT 18
 
 typedef struct {
     pthread_mutex_t mutex;
@@ -440,6 +441,89 @@ static void test_hid_mapper(void) {
     assert(mapped_devices == 4);
 }
 
+static void test_usb_mapper_and_dedup(void) {
+    FILE *fixture = fopen("Core/fixtures/usb_devices.tsv", "r");
+    assert(fixture != NULL);
+
+    mph_device_list_t *dedup_list = mph_device_list_create();
+    assert(dedup_list != NULL);
+
+    char line[1024];
+    size_t parsed_devices = 0;
+    while (fgets(line, sizeof(line), fixture) != NULL) {
+        if (line[0] == '#') {
+            continue;
+        }
+
+        char *fields[USB_FIXTURE_FIELD_COUNT] = {0};
+        size_t field_count = split_fields(line, fields, USB_FIXTURE_FIELD_COUNT);
+        assert(field_count == USB_FIXTURE_FIELD_COUNT);
+
+        mph_usb_raw_device_t raw_device;
+        mph_usb_raw_device_init(&raw_device);
+        snprintf(raw_device.product_name, sizeof(raw_device.product_name), "%s", fields[0]);
+        snprintf(raw_device.vendor_name, sizeof(raw_device.vendor_name), "%s", fields[1]);
+        snprintf(raw_device.serial_number, sizeof(raw_device.serial_number), "%s", fields[2]);
+        raw_device.vendor_id = fixture_u32(fields[3]);
+        raw_device.product_id = fixture_u32(fields[4]);
+        raw_device.device_class = fixture_u32(fields[5]);
+        raw_device.device_subclass = fixture_u32(fields[6]);
+        raw_device.device_protocol = fixture_u32(fields[7]);
+        raw_device.interface_class_mask = fixture_u32(fields[8]);
+        raw_device.speed_mbps = fixture_u32(fields[9]);
+        raw_device.power_ma = fixture_u32(fields[10]);
+        raw_device.location_id = fixture_u32(fields[11]);
+        raw_device.registry_id = strtoull(fields[12], NULL, 10);
+        raw_device.parent_registry_id = strtoull(fields[13], NULL, 10);
+        raw_device.depth = fixture_u32(fields[14]);
+        raw_device.is_connected = fixture_bool(fields[15]);
+
+        mph_device_category_t expected_category = mph_device_category_from_name(fields[16]);
+        assert(mph_usb_infer_category(&raw_device) == expected_category);
+
+        mph_device_t device;
+        assert(mph_usb_map_raw_device(&raw_device, &device) == MPH_STATUS_OK);
+        assert(!mph_device_id_is_empty(&device.id));
+        assert(device.category == expected_category);
+        assert(device.transport == MPH_DEVICE_TRANSPORT_USB);
+        assert(device.connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+        assert(device.is_connected);
+        assert(device.usb.vendor_id == raw_device.vendor_id);
+        assert(device.usb.product_id == raw_device.product_id);
+        assert(device.usb.speed_mbps == raw_device.speed_mbps);
+        assert(device.usb.power_ma == raw_device.power_ma);
+        assert(device.display_name[0] != '\0');
+
+        if (strcmp(fields[17], "none") != 0) {
+            mph_device_t existing;
+            mph_device_init(&existing);
+            existing.category = mph_device_category_from_name(fields[17]);
+            existing.transport = MPH_DEVICE_TRANSPORT_USB;
+            assert(mph_device_set_display_name(&existing, raw_device.product_name) ==
+                   MPH_STATUS_OK);
+            assert(mph_device_set_serial_number(&existing, raw_device.serial_number) ==
+                   MPH_STATUS_OK);
+            existing.hid.vendor_id = raw_device.vendor_id;
+            existing.hid.product_id = raw_device.product_id;
+            existing.usb.vendor_id = raw_device.vendor_id;
+            existing.usb.product_id = raw_device.product_id;
+            assert(mph_usb_matches_device(&raw_device, &existing));
+        }
+
+        size_t before_append = mph_device_list_count(dedup_list);
+        assert(mph_usb_append_mapped_device(dedup_list, &raw_device) == MPH_STATUS_OK);
+        assert(mph_device_list_count(dedup_list) == before_append + 1);
+        assert(mph_usb_append_mapped_device(dedup_list, &raw_device) == MPH_STATUS_OK);
+        assert(mph_device_list_count(dedup_list) == before_append + 1);
+
+        parsed_devices += 1;
+    }
+
+    fclose(fixture);
+    mph_device_list_destroy(dedup_list);
+    assert(parsed_devices == 6);
+}
+
 static void test_core_audio_live_smoke(void) {
     mph_device_list_t *list = mph_device_list_create();
     assert(list != NULL);
@@ -525,6 +609,32 @@ static void test_hid_live_smoke(void) {
         assert(device->display_name[0] != '\0');
         assert(device->hid.usage_page != 0);
         assert(device->hid.usage != 0);
+    }
+
+    mph_device_list_destroy(list);
+}
+
+static void test_usb_live_smoke(void) {
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_usb_enumerate_devices(list) == MPH_STATUS_OK);
+
+    for (size_t index = 0; index < mph_device_list_count(list); index += 1) {
+        const mph_device_t *device = mph_device_list_get(list, index);
+        assert(device != NULL);
+        assert(!mph_device_id_is_empty(&device->id));
+        assert(device->category == MPH_DEVICE_CATEGORY_USB ||
+               device->category == MPH_DEVICE_CATEGORY_HUB ||
+               device->category == MPH_DEVICE_CATEGORY_DOCK ||
+               device->category == MPH_DEVICE_CATEGORY_AUDIO_INTERFACE ||
+               device->category == MPH_DEVICE_CATEGORY_CAMERA ||
+               device->category == MPH_DEVICE_CATEGORY_KEYBOARD ||
+               device->category == MPH_DEVICE_CATEGORY_MOUSE ||
+               device->category == MPH_DEVICE_CATEGORY_TRACKPAD ||
+               device->category == MPH_DEVICE_CATEGORY_UNKNOWN);
+        assert(device->transport == MPH_DEVICE_TRANSPORT_USB);
+        assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+        assert(device->display_name[0] != '\0');
     }
 
     mph_device_list_destroy(list);
@@ -945,10 +1055,12 @@ int main(void) {
     test_display_mapper();
     test_camera_mapper();
     test_hid_mapper();
+    test_usb_mapper_and_dedup();
     test_core_audio_live_smoke();
     test_display_live_smoke();
     test_camera_live_smoke();
     test_hid_live_smoke();
+    test_usb_live_smoke();
     test_audio_watcher_live_smoke();
     test_profile_store();
     test_reconcile();

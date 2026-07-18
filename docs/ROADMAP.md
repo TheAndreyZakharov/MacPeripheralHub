@@ -217,15 +217,15 @@ Commit: `feat(system): enumerate HID peripherals`
 
 ## 11. USB, hubs, docks и неизвестные устройства
 
-- [ ] Создать adapter для IOKit USB registry.
-- [ ] Получать USB devices tree.
-- [ ] Определять hubs.
-- [ ] Определять docks, если metadata позволяет.
-- [ ] Читать vendor id, product id, vendor name, product name, serial.
-- [ ] Читать speed/power metadata, если доступно.
-- [ ] Связывать USB audio/camera/HID devices с уже найденными устройствами, где возможно.
-- [ ] Все неполно определенные устройства класть в `unknown` или `usb`.
-- [ ] Добавить deduplication tests.
+- [x] Создать adapter для IOKit USB registry.
+- [x] Получать USB devices tree.
+- [x] Определять hubs.
+- [x] Определять docks, если metadata позволяет.
+- [x] Читать vendor id, product id, vendor name, product name, serial.
+- [x] Читать speed/power metadata, если доступно.
+- [x] Связывать USB audio/camera/HID devices с уже найденными устройствами, где возможно.
+- [x] Все неполно определенные устройства класть в `unknown` или `usb`.
+- [x] Добавить deduplication tests.
 
 Commit: `feat(system): enumerate USB devices and hubs`
 
@@ -489,7 +489,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(system): enumerate connected displays`
 - [x] `feat(system): enumerate cameras`
 - [x] `feat(system): enumerate HID peripherals`
-- [ ] `feat(system): enumerate USB devices and hubs`
+- [x] `feat(system): enumerate USB devices and hubs`
 - [ ] `feat(system): enumerate Bluetooth peripherals`
 - [ ] `feat(core): aggregate peripheral inventory`
 - [ ] `feat(app): bridge C core into Swift app state`
