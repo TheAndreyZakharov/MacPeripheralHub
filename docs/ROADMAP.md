@@ -87,7 +87,7 @@ Commit: `feat(storage): add SQLite profile database`
 
 ## 4. Модель устройств и категорий
 
-- [ ] Описать enum категорий:
+- [x] Описать enum категорий:
   - display
   - audio_input
   - audio_output
@@ -102,7 +102,7 @@ Commit: `feat(storage): add SQLite profile database`
   - dock
   - audio_interface
   - unknown
-- [ ] Описать enum transport:
+- [x] Описать enum transport:
   - built_in
   - usb
   - bluetooth
@@ -112,12 +112,12 @@ Commit: `feat(storage): add SQLite profile database`
   - virtual
   - aggregate
   - unknown
-- [ ] Описать `mph_device_t` с stable id, display name, vendor, model, serial, category, transport, connection state.
-- [ ] Описать typed characteristics для audio/display/camera/HID/Bluetooth/USB.
-- [ ] Реализовать нормализацию имен устройств.
-- [ ] Реализовать matching устройств между запусками.
-- [ ] Добавить fixtures с искусственными устройствами.
-- [ ] Покрыть matching и categorization C-тестами.
+- [x] Описать `mph_device_t` с stable id, display name, vendor, model, serial, category, transport, connection state.
+- [x] Описать typed characteristics для audio/display/camera/HID/Bluetooth/USB.
+- [x] Реализовать нормализацию имен устройств.
+- [x] Реализовать matching устройств между запусками.
+- [x] Добавить fixtures с искусственными устройствами.
+- [x] Покрыть matching и categorization C-тестами.
 
 Commit: `feat(core): model peripheral devices and matching`
 
@@ -482,7 +482,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `chore: scaffold macOS app and C core layout`
 - [x] `feat(core): add C foundation library`
 - [x] `feat(storage): add SQLite profile database`
-- [ ] `feat(core): model peripheral devices and matching`
+- [x] `feat(core): model peripheral devices and matching`
 - [ ] `feat(system): enumerate and switch CoreAudio devices`
 - [ ] `feat(core): enforce selected audio defaults`
 - [ ] `feat(system): watch audio device changes`

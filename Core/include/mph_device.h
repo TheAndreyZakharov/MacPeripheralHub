@@ -5,6 +5,7 @@
 #include "mph_result.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -13,6 +14,14 @@ extern "C" {
 
 #define MPH_DEVICE_TEXT_CAPACITY 128
 #define MPH_DEVICE_SERIAL_CAPACITY 96
+#define MPH_DEVICE_FINGERPRINT_CAPACITY 256
+
+typedef enum {
+    MPH_DEVICE_CONNECTION_UNKNOWN = 0,
+    MPH_DEVICE_CONNECTION_CONNECTED,
+    MPH_DEVICE_CONNECTION_DISCONNECTED,
+    MPH_DEVICE_CONNECTION_UNAVAILABLE
+} mph_device_connection_state_t;
 
 typedef enum {
     MPH_DEVICE_CATEGORY_DISPLAY = 0,
@@ -87,6 +96,7 @@ typedef struct {
     mph_device_id_t id;
     mph_device_category_t category;
     mph_device_transport_t transport;
+    mph_device_connection_state_t connection_state;
     bool is_connected;
     char display_name[MPH_DEVICE_TEXT_CAPACITY];
     char vendor_name[MPH_DEVICE_TEXT_CAPACITY];
@@ -105,9 +115,23 @@ mph_status_t mph_device_set_display_name(mph_device_t *device, const char *displ
 mph_status_t mph_device_set_vendor_name(mph_device_t *device, const char *vendor_name);
 mph_status_t mph_device_set_model_name(mph_device_t *device, const char *model_name);
 mph_status_t mph_device_set_serial_number(mph_device_t *device, const char *serial_number);
+mph_status_t mph_device_set_camera_unique_id(mph_device_t *device, const char *unique_id);
+mph_status_t mph_device_set_bluetooth_address(mph_device_t *device, const char *address);
+void mph_device_set_connection_state(mph_device_t *device,
+                                     mph_device_connection_state_t connection_state);
 const char *mph_device_category_name(mph_device_category_t category);
 const char *mph_device_transport_name(mph_device_transport_t transport);
+const char *mph_device_connection_state_name(mph_device_connection_state_t connection_state);
+mph_device_category_t mph_device_category_from_name(const char *name);
+mph_device_transport_t mph_device_transport_from_name(const char *name);
 bool mph_device_category_is_audio(mph_device_category_t category);
+mph_status_t mph_device_normalize_name(const char *input, char *output, size_t capacity);
+mph_device_category_t mph_device_infer_category(const mph_device_t *device);
+void mph_device_apply_inferred_category(mph_device_t *device);
+mph_status_t mph_device_fingerprint(const mph_device_t *device, char *buffer, size_t capacity);
+int mph_device_match_score(const mph_device_t *known_device, const mph_device_t *candidate_device);
+bool mph_device_is_probable_match(const mph_device_t *known_device,
+                                  const mph_device_t *candidate_device);
 
 #ifdef __cplusplus
 }

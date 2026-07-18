@@ -3,8 +3,11 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#define FIXTURE_FIELD_COUNT 12
 
 static void test_device_list(void) {
     mph_device_t device;
@@ -14,7 +17,7 @@ static void test_device_list(void) {
     assert(mph_device_set_display_name(&device, "USB Microphone") == MPH_STATUS_OK);
     device.category = MPH_DEVICE_CATEGORY_AUDIO_INPUT;
     device.transport = MPH_DEVICE_TRANSPORT_USB;
-    device.is_connected = true;
+    mph_device_set_connection_state(&device, MPH_DEVICE_CONNECTION_CONNECTED);
     device.audio.sample_rate_hz = 48000.0;
     device.audio.channel_count = 2;
 
@@ -28,8 +31,125 @@ static void test_device_list(void) {
     assert(strcmp(stored->display_name, "USB Microphone") == 0);
     assert(strcmp(mph_device_category_name(stored->category), "audio_input") == 0);
     assert(strcmp(mph_device_transport_name(stored->transport), "usb") == 0);
+    assert(strcmp(mph_device_connection_state_name(stored->connection_state), "connected") == 0);
 
     mph_device_list_destroy(list);
+}
+
+static size_t split_fixture_line(char *line, char *fields[FIXTURE_FIELD_COUNT]) {
+    size_t count = 0;
+    char *field_start = line;
+
+    for (char *cursor = line; *cursor != '\0'; cursor += 1) {
+        if (*cursor == '|' || *cursor == '\n' || *cursor == '\r') {
+            *cursor = '\0';
+            if (count < FIXTURE_FIELD_COUNT) {
+                fields[count] = field_start;
+                count += 1;
+            }
+            field_start = cursor + 1;
+        }
+    }
+
+    if (count < FIXTURE_FIELD_COUNT && field_start[0] != '\0') {
+        fields[count] = field_start;
+        count += 1;
+    }
+
+    return count;
+}
+
+static uint32_t fixture_u32(const char *value) {
+    return value != NULL && value[0] != '\0' ? (uint32_t)strtoul(value, NULL, 10) : 0;
+}
+
+static void test_device_modeling_from_fixture(void) {
+    FILE *fixture = fopen("Core/fixtures/artificial_devices.tsv", "r");
+    assert(fixture != NULL);
+
+    char line[1024];
+    size_t parsed_devices = 0;
+    while (fgets(line, sizeof(line), fixture) != NULL) {
+        if (line[0] == '#') {
+            continue;
+        }
+
+        char *fields[FIXTURE_FIELD_COUNT] = {0};
+        size_t field_count = split_fixture_line(line, fields);
+        assert(field_count == FIXTURE_FIELD_COUNT);
+
+        mph_device_t device;
+        mph_device_init(&device);
+        assert(mph_device_set_display_name(&device, fields[0]) == MPH_STATUS_OK);
+        assert(mph_device_set_vendor_name(&device, fields[1]) == MPH_STATUS_OK);
+        assert(mph_device_set_model_name(&device, fields[2]) == MPH_STATUS_OK);
+        assert(mph_device_set_serial_number(&device, fields[3]) == MPH_STATUS_OK);
+        device.transport = mph_device_transport_from_name(fields[5]);
+        device.hid.usage_page = fixture_u32(fields[6]);
+        device.hid.usage = fixture_u32(fields[7]);
+        device.hid.vendor_id = fixture_u32(fields[8]);
+        device.hid.product_id = fixture_u32(fields[9]);
+        device.usb.vendor_id = fixture_u32(fields[8]);
+        device.usb.product_id = fixture_u32(fields[9]);
+        assert(mph_device_set_bluetooth_address(&device, fields[10]) == MPH_STATUS_OK);
+        assert(mph_device_set_camera_unique_id(&device, fields[11]) == MPH_STATUS_OK);
+
+        mph_device_category_t expected_category = mph_device_category_from_name(fields[4]);
+        assert(expected_category != MPH_DEVICE_CATEGORY_UNKNOWN);
+        assert(device.transport ==
+               mph_device_transport_from_name(mph_device_transport_name(device.transport)));
+        assert(mph_device_infer_category(&device) == expected_category);
+        mph_device_apply_inferred_category(&device);
+        assert(device.category == expected_category);
+
+        char fingerprint[MPH_DEVICE_FINGERPRINT_CAPACITY];
+        assert(mph_device_fingerprint(&device, fingerprint, sizeof(fingerprint)) == MPH_STATUS_OK);
+        assert(strlen(fingerprint) > 0);
+
+        parsed_devices += 1;
+    }
+
+    fclose(fixture);
+    assert(parsed_devices == 9);
+}
+
+static void test_device_normalization_and_matching(void) {
+    char normalized[MPH_DEVICE_TEXT_CAPACITY];
+    assert(mph_device_normalize_name("  USB-Microphone__Pro  ", normalized, sizeof(normalized)) ==
+           MPH_STATUS_OK);
+    assert(strcmp(normalized, "usb microphone pro") == 0);
+
+    mph_device_t known;
+    mph_device_t candidate;
+    mph_device_init(&known);
+    mph_device_init(&candidate);
+
+    assert(mph_device_set_display_name(&known, "USB Microphone Pro") == MPH_STATUS_OK);
+    assert(mph_device_set_vendor_name(&known, "Shure") == MPH_STATUS_OK);
+    assert(mph_device_set_model_name(&known, "MV7") == MPH_STATUS_OK);
+    assert(mph_device_set_serial_number(&known, "MIC-001") == MPH_STATUS_OK);
+    known.category = MPH_DEVICE_CATEGORY_AUDIO_INPUT;
+    known.transport = MPH_DEVICE_TRANSPORT_USB;
+
+    assert(mph_device_set_display_name(&candidate, "usb-microphone pro") == MPH_STATUS_OK);
+    assert(mph_device_set_vendor_name(&candidate, "shure") == MPH_STATUS_OK);
+    assert(mph_device_set_model_name(&candidate, "mv7") == MPH_STATUS_OK);
+    assert(mph_device_set_serial_number(&candidate, "MIC-001") == MPH_STATUS_OK);
+    candidate.category = MPH_DEVICE_CATEGORY_AUDIO_INPUT;
+    candidate.transport = MPH_DEVICE_TRANSPORT_USB;
+
+    assert(mph_device_match_score(&known, &candidate) >= 90);
+    assert(mph_device_is_probable_match(&known, &candidate));
+
+    mph_device_t generic_known;
+    mph_device_t generic_candidate;
+    mph_device_init(&generic_known);
+    mph_device_init(&generic_candidate);
+    assert(mph_device_set_display_name(&generic_known, "USB Device") == MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&generic_candidate, "USB Device") == MPH_STATUS_OK);
+    generic_known.category = MPH_DEVICE_CATEGORY_USB;
+    generic_candidate.category = MPH_DEVICE_CATEGORY_USB;
+    assert(!mph_device_is_probable_match(&generic_known, &generic_candidate));
 }
 
 static void test_profile_store(void) {
@@ -163,6 +283,8 @@ static void test_sqlite_profile_storage(void) {
 int main(void) {
     assert(strcmp(mph_core_version(), "1.0.0") == 0);
     test_device_list();
+    test_device_modeling_from_fixture();
+    test_device_normalization_and_matching();
     test_profile_store();
     test_reconcile();
     test_sqlite_profile_storage();

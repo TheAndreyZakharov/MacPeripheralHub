@@ -1,0 +1,10 @@
+# display_name|vendor|model|serial|category|transport|usage_page|usage|vendor_id|product_id|bluetooth_address|camera_unique_id
+Studio Display|Apple|Studio Display|DISPLAY-001|display|thunderbolt|0|0|1452|6170||
+USB Microphone|Shure|MV7|MIC-001|audio_input|usb|0|0|4660|22136||
+Studio Speakers|Focusrite|Scarlett 2i2|AUDIO-OUT-001|audio_output|usb|0|0|1235|22137||
+FaceTime HD Camera|Apple|Built-In Camera|CAM-001|camera|built_in|0|0|1452|34065||AppleCameraUniqueId
+Magic Keyboard|Apple|Magic Keyboard|KEY-001|keyboard|bluetooth|1|6|1452|615|AA:BB:CC:DD:EE:01|
+Magic Mouse|Apple|Magic Mouse|MOUSE-001|mouse|bluetooth|1|2|1452|617|AA:BB:CC:DD:EE:02|
+Magic Trackpad|Apple|Magic Trackpad|TRACKPAD-001|trackpad|bluetooth|13|5|1452|613|AA:BB:CC:DD:EE:03|
+Thunderbolt Dock|CalDigit|TS4|DOCK-001|dock|thunderbolt|0|0|8457|4352||
+USB-C Hub|Anker|PowerExpand|HUB-001|hub|usb|0|0|10429|2048||
