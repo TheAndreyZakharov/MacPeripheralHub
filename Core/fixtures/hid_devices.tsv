@@ -1,0 +1,6 @@
+# product_name|manufacturer|serial_number|transport_name|vendor_id|product_id|usage_page|usage|registry_id|is_connected|expected_category|expected_transport
+Magic Keyboard|Apple|KEY-001|Bluetooth|1452|615|1|6|1001|1|keyboard|bluetooth
+MX Master 3S|Logitech|MOUSE-001|USB|1133|16517|1|2|1002|1|mouse|usb
+Magic Trackpad|Apple|TRACKPAD-001|Bluetooth|1452|613|13|5|1003|1|trackpad|bluetooth
+Internal Keyboard / Trackpad|Apple||SPI|1452|999|1|6|1004|1|keyboard|built_in
+Vendor Consumer Control|Vendor||USB|9999|8888|12|1|1005|1|unknown|usb

@@ -13,6 +13,7 @@
 #define FIXTURE_FIELD_COUNT 12
 #define DISPLAY_FIXTURE_FIELD_COUNT 16
 #define CAMERA_FIXTURE_FIELD_COUNT 8
+#define HID_FIXTURE_FIELD_COUNT 12
 
 typedef struct {
     pthread_mutex_t mutex;
@@ -374,6 +375,71 @@ static void test_camera_mapper(void) {
     assert(parsed_devices == 4);
 }
 
+static void test_hid_mapper(void) {
+    FILE *fixture = fopen("Core/fixtures/hid_devices.tsv", "r");
+    assert(fixture != NULL);
+
+    char line[1024];
+    size_t parsed_devices = 0;
+    size_t mapped_devices = 0;
+    while (fgets(line, sizeof(line), fixture) != NULL) {
+        if (line[0] == '#') {
+            continue;
+        }
+
+        char *fields[HID_FIXTURE_FIELD_COUNT] = {0};
+        size_t field_count = split_fields(line, fields, HID_FIXTURE_FIELD_COUNT);
+        assert(field_count == HID_FIXTURE_FIELD_COUNT);
+
+        mph_hid_raw_device_t raw_device;
+        mph_hid_raw_device_init(&raw_device);
+        snprintf(raw_device.product_name, sizeof(raw_device.product_name), "%s", fields[0]);
+        snprintf(raw_device.manufacturer, sizeof(raw_device.manufacturer), "%s", fields[1]);
+        snprintf(raw_device.serial_number, sizeof(raw_device.serial_number), "%s", fields[2]);
+        snprintf(raw_device.transport_name, sizeof(raw_device.transport_name), "%s", fields[3]);
+        raw_device.vendor_id = fixture_u32(fields[4]);
+        raw_device.product_id = fixture_u32(fields[5]);
+        raw_device.usage_page = fixture_u32(fields[6]);
+        raw_device.usage = fixture_u32(fields[7]);
+        raw_device.registry_id = strtoull(fields[8], NULL, 10);
+        raw_device.is_connected = fixture_bool(fields[9]);
+
+        mph_device_category_t expected_category = mph_device_category_from_name(fields[10]);
+        mph_device_transport_t expected_transport = mph_device_transport_from_name(fields[11]);
+        assert(mph_hid_infer_category(&raw_device) == expected_category);
+        assert(mph_hid_infer_transport(&raw_device) == expected_transport);
+
+        mph_device_t device;
+        mph_status_t status = mph_hid_map_raw_device(&raw_device, &device);
+        if (expected_category == MPH_DEVICE_CATEGORY_UNKNOWN) {
+            assert(status == MPH_STATUS_NOT_FOUND);
+            parsed_devices += 1;
+            continue;
+        }
+
+        assert(status == MPH_STATUS_OK);
+        assert(!mph_device_id_is_empty(&device.id));
+        assert(device.category == expected_category);
+        assert(device.transport == expected_transport);
+        assert(device.connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+        assert(device.is_connected);
+        assert(strcmp(device.display_name, raw_device.product_name) == 0);
+        assert(strcmp(device.vendor_name, raw_device.manufacturer) == 0);
+        assert(strcmp(device.serial_number, raw_device.serial_number) == 0);
+        assert(device.hid.vendor_id == raw_device.vendor_id);
+        assert(device.hid.product_id == raw_device.product_id);
+        assert(device.hid.usage_page == raw_device.usage_page);
+        assert(device.hid.usage == raw_device.usage);
+
+        mapped_devices += 1;
+        parsed_devices += 1;
+    }
+
+    fclose(fixture);
+    assert(parsed_devices == 5);
+    assert(mapped_devices == 4);
+}
+
 static void test_core_audio_live_smoke(void) {
     mph_device_list_t *list = mph_device_list_create();
     assert(list != NULL);
@@ -438,6 +504,27 @@ static void test_camera_live_smoke(void) {
         assert(device->display_name[0] != '\0');
         assert(device->camera.unique_id[0] != '\0');
         assert(!device->camera.supports_global_default);
+    }
+
+    mph_device_list_destroy(list);
+}
+
+static void test_hid_live_smoke(void) {
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_hid_enumerate_devices(list) == MPH_STATUS_OK);
+
+    for (size_t index = 0; index < mph_device_list_count(list); index += 1) {
+        const mph_device_t *device = mph_device_list_get(list, index);
+        assert(device != NULL);
+        assert(!mph_device_id_is_empty(&device->id));
+        assert(device->category == MPH_DEVICE_CATEGORY_KEYBOARD ||
+               device->category == MPH_DEVICE_CATEGORY_MOUSE ||
+               device->category == MPH_DEVICE_CATEGORY_TRACKPAD);
+        assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+        assert(device->display_name[0] != '\0');
+        assert(device->hid.usage_page != 0);
+        assert(device->hid.usage != 0);
     }
 
     mph_device_list_destroy(list);
@@ -857,9 +944,11 @@ int main(void) {
     test_core_audio_mapper();
     test_display_mapper();
     test_camera_mapper();
+    test_hid_mapper();
     test_core_audio_live_smoke();
     test_display_live_smoke();
     test_camera_live_smoke();
+    test_hid_live_smoke();
     test_audio_watcher_live_smoke();
     test_profile_store();
     test_reconcile();

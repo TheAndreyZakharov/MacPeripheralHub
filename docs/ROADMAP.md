@@ -201,17 +201,17 @@ Commit: `feat(system): enumerate cameras`
 
 ## 10. HID: клавиатуры, мыши, трекпады
 
-- [ ] Создать adapter для IOHIDManager.
-- [ ] Получать HID devices.
-- [ ] Определять keyboard/mouse/trackpad по usage page и usage.
-- [ ] Читать vendor id.
-- [ ] Читать product id.
-- [ ] Читать product name.
-- [ ] Читать manufacturer.
-- [ ] Читать transport.
-- [ ] Читать serial, если доступен.
-- [ ] Убирать дубли, если одно устройство видно через несколько API.
-- [ ] Добавить categorization tests.
+- [x] Создать adapter для IOHIDManager.
+- [x] Получать HID devices.
+- [x] Определять keyboard/mouse/trackpad по usage page и usage.
+- [x] Читать vendor id.
+- [x] Читать product id.
+- [x] Читать product name.
+- [x] Читать manufacturer.
+- [x] Читать transport.
+- [x] Читать serial, если доступен.
+- [x] Убирать дубли, если одно устройство видно через несколько API.
+- [x] Добавить categorization tests.
 
 Commit: `feat(system): enumerate HID peripherals`
 
@@ -486,9 +486,9 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(system): enumerate and switch CoreAudio devices`
 - [x] `feat(core): enforce selected audio defaults`
 - [x] `feat(system): watch audio device changes`
-- [ ] `feat(system): enumerate connected displays`
-- [ ] `feat(system): enumerate cameras`
-- [ ] `feat(system): enumerate HID peripherals`
+- [x] `feat(system): enumerate connected displays`
+- [x] `feat(system): enumerate cameras`
+- [x] `feat(system): enumerate HID peripherals`
 - [ ] `feat(system): enumerate USB devices and hubs`
 - [ ] `feat(system): enumerate Bluetooth peripherals`
 - [ ] `feat(core): aggregate peripheral inventory`
