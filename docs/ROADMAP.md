@@ -123,22 +123,22 @@ Commit: `feat(core): model peripheral devices and matching`
 
 ## 5. CoreAudio: аудиоустройства
 
-- [ ] Создать C/Objective-C adapter для CoreAudio.
-- [ ] Получать список audio devices.
-- [ ] Разделять input, output и system output capable devices.
-- [ ] Читать device UID.
-- [ ] Читать имя устройства.
-- [ ] Читать manufacturer, если доступен.
-- [ ] Читать sample rate.
-- [ ] Читать channel count.
-- [ ] Читать current default input.
-- [ ] Читать current default output.
-- [ ] Читать current default system output.
-- [ ] Реализовать установку default input.
-- [ ] Реализовать установку default output.
-- [ ] Реализовать установку default system output.
-- [ ] Обработать исчезновение выбранного устройства без падения.
-- [ ] Добавить unit tests на mapper и integration smoke на реальной машине, где возможно.
+- [x] Создать C/Objective-C adapter для CoreAudio.
+- [x] Получать список audio devices.
+- [x] Разделять input, output и system output capable devices.
+- [x] Читать device UID.
+- [x] Читать имя устройства.
+- [x] Читать manufacturer, если доступен.
+- [x] Читать sample rate.
+- [x] Читать channel count.
+- [x] Читать current default input.
+- [x] Читать current default output.
+- [x] Читать current default system output.
+- [x] Реализовать установку default input.
+- [x] Реализовать установку default output.
+- [x] Реализовать установку default system output.
+- [x] Обработать исчезновение выбранного устройства без падения.
+- [x] Добавить unit tests на mapper и integration smoke на реальной машине, где возможно.
 
 Commit: `feat(system): enumerate and switch CoreAudio devices`
 
@@ -483,7 +483,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(core): add C foundation library`
 - [x] `feat(storage): add SQLite profile database`
 - [x] `feat(core): model peripheral devices and matching`
-- [ ] `feat(system): enumerate and switch CoreAudio devices`
+- [x] `feat(system): enumerate and switch CoreAudio devices`
 - [ ] `feat(core): enforce selected audio defaults`
 - [ ] `feat(system): watch audio device changes`
 - [ ] `feat(system): enumerate connected displays`

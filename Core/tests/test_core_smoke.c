@@ -152,6 +152,85 @@ static void test_device_normalization_and_matching(void) {
     assert(!mph_device_is_probable_match(&generic_known, &generic_candidate));
 }
 
+static void test_core_audio_mapper(void) {
+    mph_core_audio_raw_device_t raw_device;
+    mph_core_audio_raw_device_init(&raw_device);
+    snprintf(raw_device.uid, sizeof(raw_device.uid), "%s", "UnitTestAudioUID");
+    snprintf(raw_device.name, sizeof(raw_device.name), "%s", "Unit Test Audio Interface");
+    snprintf(raw_device.manufacturer, sizeof(raw_device.manufacturer), "%s", "MacPeripheralHub");
+    raw_device.transport = MPH_DEVICE_TRANSPORT_USB;
+    raw_device.sample_rate_hz = 48000.0;
+    raw_device.input_channel_count = 2;
+    raw_device.output_channel_count = 4;
+    raw_device.is_alive = true;
+    raw_device.is_default_input = true;
+    raw_device.is_default_output = true;
+    raw_device.is_default_system_output = false;
+
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_core_audio_map_raw_device(&raw_device, list) == MPH_STATUS_OK);
+    assert(mph_device_list_count(list) == 3);
+
+    const mph_device_t *input = mph_device_list_get(list, 0);
+    const mph_device_t *output = mph_device_list_get(list, 1);
+    const mph_device_t *system_output = mph_device_list_get(list, 2);
+    assert(input != NULL);
+    assert(output != NULL);
+    assert(system_output != NULL);
+    assert(input->category == MPH_DEVICE_CATEGORY_AUDIO_INPUT);
+    assert(output->category == MPH_DEVICE_CATEGORY_AUDIO_OUTPUT);
+    assert(system_output->category == MPH_DEVICE_CATEGORY_AUDIO_SYSTEM_OUTPUT);
+    assert(input->audio.channel_count == 2);
+    assert(output->audio.channel_count == 4);
+    assert(system_output->audio.channel_count == 4);
+    assert(input->audio.is_default_input);
+    assert(output->audio.is_default_output);
+    assert(!system_output->audio.is_default_system_output);
+    assert(input->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+
+    mph_device_id_t expected_input_id;
+    assert(mph_core_audio_role_device_id(&expected_input_id, MPH_CORE_AUDIO_ROLE_INPUT,
+                                         raw_device.uid) == MPH_STATUS_OK);
+    assert(mph_device_id_equal(&input->id, &expected_input_id));
+
+    mph_core_audio_raw_device_t missing_channels;
+    mph_core_audio_raw_device_init(&missing_channels);
+    snprintf(missing_channels.uid, sizeof(missing_channels.uid), "%s", "NoChannels");
+    assert(mph_core_audio_map_raw_device(&missing_channels, list) == MPH_STATUS_NOT_FOUND);
+
+    mph_device_list_destroy(list);
+}
+
+static void test_core_audio_live_smoke(void) {
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_core_audio_enumerate_devices(list) == MPH_STATUS_OK);
+
+    for (size_t index = 0; index < mph_device_list_count(list); index += 1) {
+        const mph_device_t *device = mph_device_list_get(list, index);
+        assert(device != NULL);
+        assert(!mph_device_id_is_empty(&device->id));
+        assert(mph_device_category_is_audio(device->category));
+    }
+
+    mph_device_id_t default_id;
+    bool found = true;
+    assert(mph_core_audio_get_default_input(&default_id, &found) == MPH_STATUS_OK);
+    assert(found == false || !mph_device_id_is_empty(&default_id));
+    assert(mph_core_audio_get_default_output(&default_id, &found) == MPH_STATUS_OK);
+    assert(found == false || !mph_device_id_is_empty(&default_id));
+    assert(mph_core_audio_get_default_system_output(&default_id, &found) == MPH_STATUS_OK);
+    assert(found == false || !mph_device_id_is_empty(&default_id));
+
+    mph_device_id_t missing_id;
+    assert(mph_device_id_from_parts(&missing_id, "coreaudio.input", "missing-device-for-test") ==
+           MPH_STATUS_OK);
+    assert(mph_core_audio_set_default_input(&missing_id) == MPH_STATUS_NOT_FOUND);
+
+    mph_device_list_destroy(list);
+}
+
 static void test_profile_store(void) {
     mph_device_id_t mic_id;
     assert(mph_device_id_from_parts(&mic_id, "audio", "usb-mic") == MPH_STATUS_OK);
@@ -285,6 +364,8 @@ int main(void) {
     test_device_list();
     test_device_modeling_from_fixture();
     test_device_normalization_and_matching();
+    test_core_audio_mapper();
+    test_core_audio_live_smoke();
     test_profile_store();
     test_reconcile();
     test_sqlite_profile_storage();

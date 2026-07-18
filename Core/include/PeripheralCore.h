@@ -12,6 +12,7 @@
  */
 
 #include "mph_core.h"
+#include "mph_core_audio.h"
 #include "mph_db.h"
 #include "mph_device.h"
 #include "mph_device_id.h"
