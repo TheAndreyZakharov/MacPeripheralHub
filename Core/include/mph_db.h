@@ -2,6 +2,7 @@
 #define MPH_DB_H
 
 #include "mph_device.h"
+#include "mph_device_list.h"
 #include "mph_profile.h"
 #include "mph_profile_store.h"
 #include "mph_selection.h"
@@ -32,6 +33,8 @@ mph_status_t mph_db_load_profiles(mph_db_t *db, mph_profile_store_t *store);
 mph_status_t mph_db_delete_profile(mph_db_t *db, const char *profile_id);
 
 mph_status_t mph_db_save_known_device(mph_db_t *db, const mph_device_t *device);
+mph_status_t mph_db_mark_known_devices_disconnected(mph_db_t *db);
+mph_status_t mph_db_load_known_devices(mph_db_t *db, mph_device_list_t *out_devices);
 mph_status_t mph_db_save_active_selection(mph_db_t *db, const mph_selection_t *selection);
 mph_status_t mph_db_load_active_selection(mph_db_t *db, mph_selection_t *out_selection,
                                           bool *out_found);

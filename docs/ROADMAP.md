@@ -245,13 +245,13 @@ Commit: `feat(system): enumerate Bluetooth peripherals`
 
 ## 13. Aggregated device inventory
 
-- [ ] Создать `mph_inventory`.
-- [ ] Объединять данные из CoreAudio, Displays, Cameras, HID, USB, Bluetooth.
-- [ ] Убирать дубли по stable id, serial, uid, transport metadata.
-- [ ] Сохранять known devices в SQLite.
-- [ ] Помечать currently connected/disconnected.
-- [ ] Сортировать устройства по категории и имени.
-- [ ] Добавить snapshot tests на искусственный набор устройств.
+- [x] Создать `mph_inventory`.
+- [x] Объединять данные из CoreAudio, Displays, Cameras, HID, USB, Bluetooth.
+- [x] Убирать дубли по stable id, serial, uid, transport metadata.
+- [x] Сохранять known devices в SQLite.
+- [x] Помечать currently connected/disconnected.
+- [x] Сортировать устройства по категории и имени.
+- [x] Добавить snapshot tests на искусственный набор устройств.
 
 Commit: `feat(core): aggregate peripheral inventory`
 
@@ -491,7 +491,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(system): enumerate HID peripherals`
 - [x] `feat(system): enumerate USB devices and hubs`
 - [x] `feat(system): enumerate Bluetooth peripherals`
-- [ ] `feat(core): aggregate peripheral inventory`
+- [x] `feat(core): aggregate peripheral inventory`
 - [ ] `feat(app): bridge C core into Swift app state`
 - [ ] `feat(ui): add main application window`
 - [ ] `feat(ui): add manual device controls`

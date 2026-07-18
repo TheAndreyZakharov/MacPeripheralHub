@@ -32,6 +32,7 @@
 		2B3C4D5E6F708190A0B0C014 /* mph_device_list.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */; };
 		2B3C4D5E6F708190A0B0C025 /* mph_display.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S025 /* mph_display.c */; };
 		2B3C4D5E6F708190A0B0C028 /* mph_hid.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S028 /* mph_hid.c */; };
+		2B3C4D5E6F708190A0B0C032 /* mph_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S032 /* mph_inventory.c */; };
 		2B3C4D5E6F708190A0B0C029 /* mph_usb.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S029 /* mph_usb.c */; };
 		2B3C4D5E6F708190A0B0C015 /* mph_log.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S015 /* mph_log.c */; };
 		2B3C4D5E6F708190A0B0C016 /* mph_profile.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S016 /* mph_profile.c */; };
@@ -80,6 +81,7 @@
 		2B3C4D5E6F708190A0B0H006 /* mph_device_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device_list.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H017 /* mph_display.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_display.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H019 /* mph_hid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_hid.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H022 /* mph_inventory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_inventory.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H020 /* mph_usb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_usb.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H007 /* mph_log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_log.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H008 /* mph_profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_profile.h; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 		2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device_list.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S025 /* mph_display.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_display.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S028 /* mph_hid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_hid.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S032 /* mph_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_inventory.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S029 /* mph_usb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_usb.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S015 /* mph_log.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_log.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S016 /* mph_profile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_profile.c; sourceTree = "<group>"; };
@@ -224,6 +227,7 @@
 				2B3C4D5E6F708190A0B0H006 /* mph_device_list.h */,
 				2B3C4D5E6F708190A0B0H017 /* mph_display.h */,
 				2B3C4D5E6F708190A0B0H019 /* mph_hid.h */,
+				2B3C4D5E6F708190A0B0H022 /* mph_inventory.h */,
 				2B3C4D5E6F708190A0B0H020 /* mph_usb.h */,
 				2B3C4D5E6F708190A0B0H007 /* mph_log.h */,
 				2B3C4D5E6F708190A0B0H008 /* mph_profile.h */,
@@ -252,6 +256,7 @@
 				2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */,
 				2B3C4D5E6F708190A0B0S025 /* mph_display.c */,
 				2B3C4D5E6F708190A0B0S028 /* mph_hid.c */,
+				2B3C4D5E6F708190A0B0S032 /* mph_inventory.c */,
 				2B3C4D5E6F708190A0B0S029 /* mph_usb.c */,
 				2B3C4D5E6F708190A0B0S015 /* mph_log.c */,
 				2B3C4D5E6F708190A0B0S016 /* mph_profile.c */,
@@ -376,6 +381,7 @@
 				2B3C4D5E6F708190A0B0C014 /* mph_device_list.c in Sources */,
 				2B3C4D5E6F708190A0B0C025 /* mph_display.c in Sources */,
 				2B3C4D5E6F708190A0B0C028 /* mph_hid.c in Sources */,
+				2B3C4D5E6F708190A0B0C032 /* mph_inventory.c in Sources */,
 				2B3C4D5E6F708190A0B0C029 /* mph_usb.c in Sources */,
 				2B3C4D5E6F708190A0B0C015 /* mph_log.c in Sources */,
 				2B3C4D5E6F708190A0B0C016 /* mph_profile.c in Sources */,

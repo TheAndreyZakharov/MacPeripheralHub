@@ -1,0 +1,6 @@
+# id|display_name|category|transport|is_connected
+display:studio-display|Studio Display|display|thunderbolt|1
+coreaudio.output:airpods-pro|AirPods Pro|audio_output|bluetooth|1
+hid:magic-mouse|Magic Mouse|mouse|bluetooth|1
+bluetooth:aa:bb:cc:dd:ee:04|iPhone|bluetooth|bluetooth|0
+usb:studio-hub|USB-C Hub|hub|usb|1

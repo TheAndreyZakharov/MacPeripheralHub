@@ -16,6 +16,7 @@
 #define HID_FIXTURE_FIELD_COUNT 12
 #define USB_FIXTURE_FIELD_COUNT 18
 #define BLUETOOTH_FIXTURE_FIELD_COUNT 10
+#define INVENTORY_SNAPSHOT_FIELD_COUNT 5
 
 typedef struct {
     pthread_mutex_t mutex;
@@ -620,6 +621,175 @@ static void test_bluetooth_mapper_and_merge(void) {
     assert(parsed_devices == 5);
 }
 
+static void assert_merge_device(mph_device_list_t *inventory, mph_device_t *device) {
+    assert(device != NULL);
+    assert(mph_inventory_merge_device(inventory, device) == MPH_STATUS_OK);
+}
+
+static void test_inventory_snapshot_and_storage(void) {
+    mph_device_list_t *inventory = mph_device_list_create();
+    assert(inventory != NULL);
+
+    mph_device_t display;
+    mph_device_init(&display);
+    assert(mph_device_id_from_parts(&display.id, "display", "studio-display") == MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&display, "Studio Display") == MPH_STATUS_OK);
+    display.category = MPH_DEVICE_CATEGORY_DISPLAY;
+    display.transport = MPH_DEVICE_TRANSPORT_THUNDERBOLT;
+    display.display.width_px = 5120;
+    display.display.height_px = 2880;
+    display.display.refresh_rate_hz = 60.0;
+    mph_device_set_connection_state(&display, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert_merge_device(inventory, &display);
+
+    mph_device_t airpods_audio;
+    mph_device_init(&airpods_audio);
+    assert(mph_device_id_from_parts(&airpods_audio.id, "coreaudio.output", "airpods-pro") ==
+           MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&airpods_audio, "AirPods Pro") == MPH_STATUS_OK);
+    airpods_audio.category = MPH_DEVICE_CATEGORY_AUDIO_OUTPUT;
+    airpods_audio.transport = MPH_DEVICE_TRANSPORT_BLUETOOTH;
+    airpods_audio.audio.channel_count = 2;
+    airpods_audio.audio.sample_rate_hz = 48000.0;
+    mph_device_set_connection_state(&airpods_audio, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert_merge_device(inventory, &airpods_audio);
+
+    mph_bluetooth_raw_device_t airpods_bt_raw;
+    mph_bluetooth_raw_device_init(&airpods_bt_raw);
+    snprintf(airpods_bt_raw.name, sizeof(airpods_bt_raw.name), "%s", "AirPods Pro");
+    snprintf(airpods_bt_raw.address, sizeof(airpods_bt_raw.address), "%s", "AA-BB-CC-DD-EE-01");
+    airpods_bt_raw.major_device_class = 4;
+    airpods_bt_raw.is_paired = true;
+    airpods_bt_raw.is_connected = true;
+    mph_device_t airpods_bt;
+    assert(mph_bluetooth_map_raw_device(&airpods_bt_raw, &airpods_bt) == MPH_STATUS_OK);
+    size_t before_airpods_merge = mph_device_list_count(inventory);
+    assert_merge_device(inventory, &airpods_bt);
+    assert(mph_device_list_count(inventory) == before_airpods_merge);
+    const mph_device_t *merged_airpods = mph_device_list_find_by_id(inventory, &airpods_audio.id);
+    assert(merged_airpods != NULL);
+    assert(strcmp(merged_airpods->bluetooth.address, "aa:bb:cc:dd:ee:01") == 0);
+    assert(merged_airpods->bluetooth.is_paired);
+
+    mph_device_t mouse_hid;
+    mph_device_init(&mouse_hid);
+    assert(mph_device_id_from_parts(&mouse_hid.id, "hid", "magic-mouse") == MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&mouse_hid, "Magic Mouse") == MPH_STATUS_OK);
+    mouse_hid.category = MPH_DEVICE_CATEGORY_MOUSE;
+    mouse_hid.transport = MPH_DEVICE_TRANSPORT_BLUETOOTH;
+    mouse_hid.hid.vendor_id = 1452;
+    mouse_hid.hid.product_id = 613;
+    mouse_hid.hid.usage_page = 1;
+    mouse_hid.hid.usage = 2;
+    mph_device_set_connection_state(&mouse_hid, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert_merge_device(inventory, &mouse_hid);
+
+    mph_bluetooth_raw_device_t mouse_bt_raw;
+    mph_bluetooth_raw_device_init(&mouse_bt_raw);
+    snprintf(mouse_bt_raw.name, sizeof(mouse_bt_raw.name), "%s", "Magic Mouse");
+    snprintf(mouse_bt_raw.address, sizeof(mouse_bt_raw.address), "%s", "AA-BB-CC-DD-EE-02");
+    mouse_bt_raw.major_device_class = 5;
+    mouse_bt_raw.is_paired = true;
+    mouse_bt_raw.is_connected = true;
+    mph_device_t mouse_bt;
+    assert(mph_bluetooth_map_raw_device(&mouse_bt_raw, &mouse_bt) == MPH_STATUS_OK);
+    size_t before_mouse_merge = mph_device_list_count(inventory);
+    assert_merge_device(inventory, &mouse_bt);
+    assert(mph_device_list_count(inventory) == before_mouse_merge);
+    const mph_device_t *merged_mouse = mph_device_list_find_by_id(inventory, &mouse_hid.id);
+    assert(merged_mouse != NULL);
+    assert(strcmp(merged_mouse->bluetooth.address, "aa:bb:cc:dd:ee:02") == 0);
+
+    mph_bluetooth_raw_device_t iphone_raw;
+    mph_bluetooth_raw_device_init(&iphone_raw);
+    snprintf(iphone_raw.name, sizeof(iphone_raw.name), "%s", "iPhone");
+    snprintf(iphone_raw.address, sizeof(iphone_raw.address), "%s", "AA-BB-CC-DD-EE-04");
+    iphone_raw.class_of_device = 512;
+    iphone_raw.is_paired = true;
+    iphone_raw.is_connected = false;
+    mph_device_t iphone;
+    assert(mph_bluetooth_map_raw_device(&iphone_raw, &iphone) == MPH_STATUS_OK);
+    assert_merge_device(inventory, &iphone);
+
+    mph_device_t hub;
+    mph_device_init(&hub);
+    assert(mph_device_id_from_parts(&hub.id, "usb", "studio-hub") == MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&hub, "USB-C Hub") == MPH_STATUS_OK);
+    hub.category = MPH_DEVICE_CATEGORY_HUB;
+    hub.transport = MPH_DEVICE_TRANSPORT_USB;
+    hub.usb.vendor_id = 10429;
+    hub.usb.product_id = 2048;
+    hub.usb.speed_mbps = 5000;
+    mph_device_set_connection_state(&hub, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert_merge_device(inventory, &hub);
+
+    mph_inventory_sort(inventory);
+
+    FILE *fixture = fopen("Core/fixtures/inventory_snapshot.tsv", "r");
+    assert(fixture != NULL);
+    char line[1024];
+    size_t expected_index = 0;
+    while (fgets(line, sizeof(line), fixture) != NULL) {
+        if (line[0] == '#') {
+            continue;
+        }
+
+        char *fields[INVENTORY_SNAPSHOT_FIELD_COUNT] = {0};
+        size_t field_count = split_fields(line, fields, INVENTORY_SNAPSHOT_FIELD_COUNT);
+        assert(field_count == INVENTORY_SNAPSHOT_FIELD_COUNT);
+        const mph_device_t *device = mph_device_list_get(inventory, expected_index);
+        assert(device != NULL);
+        assert(strcmp(mph_device_id_cstr(&device->id), fields[0]) == 0);
+        assert(strcmp(device->display_name, fields[1]) == 0);
+        assert(strcmp(mph_device_category_name(device->category), fields[2]) == 0);
+        assert(strcmp(mph_device_transport_name(device->transport), fields[3]) == 0);
+        assert(device->is_connected == fixture_bool(fields[4]));
+        expected_index += 1;
+    }
+    fclose(fixture);
+    assert(expected_index == mph_device_list_count(inventory));
+
+    char db_path[256];
+    snprintf(db_path, sizeof(db_path), "/tmp/mph_inventory_db_test_%ld.sqlite3", (long)getpid());
+    unlink(db_path);
+
+    mph_db_t *db = NULL;
+    assert(mph_db_open(&db, db_path) == MPH_STATUS_OK);
+    assert(db != NULL);
+    assert(mph_db_migrate(db) == MPH_STATUS_OK);
+
+    mph_device_t stale_device;
+    mph_device_init(&stale_device);
+    assert(mph_device_id_from_parts(&stale_device.id, "bluetooth", "old-keyboard") ==
+           MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&stale_device, "Old Keyboard") == MPH_STATUS_OK);
+    stale_device.category = MPH_DEVICE_CATEGORY_KEYBOARD;
+    stale_device.transport = MPH_DEVICE_TRANSPORT_BLUETOOTH;
+    mph_device_set_connection_state(&stale_device, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert(mph_db_save_known_device(db, &stale_device) == MPH_STATUS_OK);
+
+    assert(mph_inventory_store_known_devices(db, inventory) == MPH_STATUS_OK);
+    mph_device_list_t *known_devices = mph_device_list_create();
+    assert(known_devices != NULL);
+    assert(mph_db_load_known_devices(db, known_devices) == MPH_STATUS_OK);
+    assert(mph_device_list_count(known_devices) == mph_device_list_count(inventory) + 1);
+
+    const mph_device_t *stale_loaded = mph_device_list_find_by_id(known_devices, &stale_device.id);
+    assert(stale_loaded != NULL);
+    assert(stale_loaded->connection_state == MPH_DEVICE_CONNECTION_DISCONNECTED);
+    for (size_t index = 0; index < mph_device_list_count(inventory); index += 1) {
+        const mph_device_t *current = mph_device_list_get(inventory, index);
+        const mph_device_t *loaded = mph_device_list_find_by_id(known_devices, &current->id);
+        assert(loaded != NULL);
+        assert(loaded->connection_state == current->connection_state);
+    }
+
+    mph_device_list_destroy(known_devices);
+    mph_db_close(db);
+    unlink(db_path);
+    mph_device_list_destroy(inventory);
+}
+
 static void test_core_audio_live_smoke(void) {
     mph_device_list_t *list = mph_device_list_create();
     assert(list != NULL);
@@ -751,6 +921,28 @@ static void test_bluetooth_live_smoke(void) {
         assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED ||
                device->connection_state == MPH_DEVICE_CONNECTION_DISCONNECTED);
         assert(device->bluetooth.address[0] != '\0' || device->display_name[0] != '\0');
+    }
+
+    mph_device_list_destroy(list);
+}
+
+static void test_inventory_live_smoke(void) {
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_inventory_collect(list) == MPH_STATUS_OK);
+
+    mph_device_category_t previous_category = MPH_DEVICE_CATEGORY_DISPLAY;
+    for (size_t index = 0; index < mph_device_list_count(list); index += 1) {
+        const mph_device_t *device = mph_device_list_get(list, index);
+        assert(device != NULL);
+        assert(!mph_device_id_is_empty(&device->id));
+        assert(device->display_name[0] != '\0');
+        assert(device->category >= previous_category);
+        assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED ||
+               device->connection_state == MPH_DEVICE_CONNECTION_DISCONNECTED ||
+               device->connection_state == MPH_DEVICE_CONNECTION_UNAVAILABLE ||
+               device->connection_state == MPH_DEVICE_CONNECTION_UNKNOWN);
+        previous_category = device->category;
     }
 
     mph_device_list_destroy(list);
@@ -1173,12 +1365,14 @@ int main(void) {
     test_hid_mapper();
     test_usb_mapper_and_dedup();
     test_bluetooth_mapper_and_merge();
+    test_inventory_snapshot_and_storage();
     test_core_audio_live_smoke();
     test_display_live_smoke();
     test_camera_live_smoke();
     test_hid_live_smoke();
     test_usb_live_smoke();
     test_bluetooth_live_smoke();
+    test_inventory_live_smoke();
     test_audio_watcher_live_smoke();
     test_profile_store();
     test_reconcile();

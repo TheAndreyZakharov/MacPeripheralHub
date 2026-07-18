@@ -72,6 +72,25 @@ const mph_device_t *mph_device_list_get(const mph_device_list_t *list, size_t in
     return &list->items[index];
 }
 
+mph_device_t *mph_device_list_get_mutable(mph_device_list_t *list, size_t index) {
+    if (list == NULL || index >= list->count) {
+        return NULL;
+    }
+
+    return &list->items[index];
+}
+
+mph_status_t mph_device_list_replace_at(mph_device_list_t *list, size_t index,
+                                        const mph_device_t *device) {
+    if (list == NULL || device == NULL || index >= list->count ||
+        mph_device_id_is_empty(&device->id)) {
+        return MPH_STATUS_INVALID_ARGUMENT;
+    }
+
+    list->items[index] = *device;
+    return MPH_STATUS_OK;
+}
+
 const mph_device_t *mph_device_list_find_by_id(const mph_device_list_t *list,
                                                const mph_device_id_t *device_id) {
     if (list == NULL || mph_device_id_is_empty(device_id)) {

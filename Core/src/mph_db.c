@@ -636,6 +636,82 @@ mph_status_t mph_db_save_known_device(mph_db_t *db, const mph_device_t *device) 
     return status;
 }
 
+mph_status_t mph_db_mark_known_devices_disconnected(mph_db_t *db) {
+    if (db == NULL) {
+        return MPH_STATUS_INVALID_ARGUMENT;
+    }
+
+    sqlite3_stmt *statement = NULL;
+    mph_status_t status =
+        prepare_statement(db, "UPDATE known_devices SET is_connected = 0;", &statement);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
+    status = step_done(db->connection, statement);
+    sqlite3_finalize(statement);
+    return status;
+}
+
+mph_status_t mph_db_load_known_devices(mph_db_t *db, mph_device_list_t *out_devices) {
+    if (db == NULL || out_devices == NULL) {
+        return MPH_STATUS_INVALID_ARGUMENT;
+    }
+
+    sqlite3_stmt *statement = NULL;
+    mph_status_t status = prepare_statement(
+        db,
+        "SELECT id, category, transport, is_connected, display_name, vendor_name, model_name, "
+        "serial_number FROM known_devices ORDER BY category, display_name, id;",
+        &statement);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
+    while (true) {
+        int rc = sqlite3_step(statement);
+        if (rc == SQLITE_DONE) {
+            sqlite3_finalize(statement);
+            return MPH_STATUS_OK;
+        }
+        if (rc != SQLITE_ROW) {
+            mph_log_message(MPH_LOG_LEVEL_ERROR, "mph_db", sqlite3_errmsg(db->connection));
+            sqlite3_finalize(statement);
+            return MPH_STATUS_INTERNAL_ERROR;
+        }
+
+        mph_device_t device;
+        mph_device_init(&device);
+        status = mph_device_id_set(&device.id, column_text(statement, 0));
+        if (mph_status_is_ok(status)) {
+            device.category = mph_device_category_from_name(column_text(statement, 1));
+            device.transport = mph_device_transport_from_name(column_text(statement, 2));
+            mph_device_set_connection_state(&device, sqlite3_column_int(statement, 3) != 0
+                                                         ? MPH_DEVICE_CONNECTION_CONNECTED
+                                                         : MPH_DEVICE_CONNECTION_DISCONNECTED);
+        }
+        if (mph_status_is_ok(status)) {
+            status = mph_device_set_display_name(&device, column_text(statement, 4));
+        }
+        if (mph_status_is_ok(status)) {
+            status = mph_device_set_vendor_name(&device, column_text(statement, 5));
+        }
+        if (mph_status_is_ok(status)) {
+            status = mph_device_set_model_name(&device, column_text(statement, 6));
+        }
+        if (mph_status_is_ok(status)) {
+            status = mph_device_set_serial_number(&device, column_text(statement, 7));
+        }
+        if (mph_status_is_ok(status)) {
+            status = mph_device_list_append(out_devices, &device);
+        }
+        if (!mph_status_is_ok(status)) {
+            sqlite3_finalize(statement);
+            return status;
+        }
+    }
+}
+
 mph_status_t mph_db_save_active_selection(mph_db_t *db, const mph_selection_t *selection) {
     if (db == NULL || selection == NULL) {
         return MPH_STATUS_INVALID_ARGUMENT;

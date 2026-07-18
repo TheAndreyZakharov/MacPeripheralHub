@@ -22,6 +22,7 @@
 #include "mph_device_list.h"
 #include "mph_display.h"
 #include "mph_hid.h"
+#include "mph_inventory.h"
 #include "mph_log.h"
 #include "mph_profile.h"
 #include "mph_profile_store.h"
