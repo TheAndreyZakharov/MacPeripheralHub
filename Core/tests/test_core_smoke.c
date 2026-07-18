@@ -15,6 +15,7 @@
 #define CAMERA_FIXTURE_FIELD_COUNT 8
 #define HID_FIXTURE_FIELD_COUNT 12
 #define USB_FIXTURE_FIELD_COUNT 18
+#define BLUETOOTH_FIXTURE_FIELD_COUNT 10
 
 typedef struct {
     pthread_mutex_t mutex;
@@ -524,6 +525,101 @@ static void test_usb_mapper_and_dedup(void) {
     assert(parsed_devices == 6);
 }
 
+static void test_bluetooth_mapper_and_merge(void) {
+    FILE *fixture = fopen("Core/fixtures/bluetooth_devices.tsv", "r");
+    assert(fixture != NULL);
+
+    mph_device_list_t *dedup_list = mph_device_list_create();
+    assert(dedup_list != NULL);
+
+    char line[1024];
+    size_t parsed_devices = 0;
+    while (fgets(line, sizeof(line), fixture) != NULL) {
+        if (line[0] == '#') {
+            continue;
+        }
+
+        char *fields[BLUETOOTH_FIXTURE_FIELD_COUNT] = {0};
+        size_t field_count = split_fields(line, fields, BLUETOOTH_FIXTURE_FIELD_COUNT);
+        assert(field_count == BLUETOOTH_FIXTURE_FIELD_COUNT);
+
+        mph_bluetooth_raw_device_t raw_device;
+        mph_bluetooth_raw_device_init(&raw_device);
+        snprintf(raw_device.name, sizeof(raw_device.name), "%s", fields[0]);
+        snprintf(raw_device.address, sizeof(raw_device.address), "%s", fields[1]);
+        raw_device.class_of_device = fixture_u32(fields[2]);
+        raw_device.major_device_class = fixture_u32(fields[3]);
+        raw_device.minor_device_class = fixture_u32(fields[4]);
+        raw_device.major_service_class = fixture_u32(fields[5]);
+        raw_device.is_paired = fixture_bool(fields[6]);
+        raw_device.is_connected = fixture_bool(fields[7]);
+
+        bool expected_audio = fixture_bool(fields[8]);
+        bool expected_hid = fixture_bool(fields[9]);
+        assert(mph_bluetooth_is_audio_device(&raw_device) == expected_audio);
+        assert(mph_bluetooth_is_hid_device(&raw_device) == expected_hid);
+        assert(mph_bluetooth_infer_category(&raw_device) == MPH_DEVICE_CATEGORY_BLUETOOTH);
+
+        char normalized_address[MPH_BLUETOOTH_ADDRESS_CAPACITY];
+        assert(mph_bluetooth_normalize_address(raw_device.address, normalized_address,
+                                               sizeof(normalized_address)) == MPH_STATUS_OK);
+        assert(strchr(normalized_address, '-') == NULL);
+
+        mph_device_t device;
+        assert(mph_bluetooth_map_raw_device(&raw_device, &device) == MPH_STATUS_OK);
+        assert(!mph_device_id_is_empty(&device.id));
+        assert(device.category == MPH_DEVICE_CATEGORY_BLUETOOTH);
+        assert(device.transport == MPH_DEVICE_TRANSPORT_BLUETOOTH);
+        assert(device.connection_state == (raw_device.is_connected
+                                               ? MPH_DEVICE_CONNECTION_CONNECTED
+                                               : MPH_DEVICE_CONNECTION_DISCONNECTED));
+        assert(strcmp(device.bluetooth.address, normalized_address) == 0);
+        assert(device.bluetooth.is_paired == raw_device.is_paired);
+        assert(device.bluetooth.is_connected == raw_device.is_connected);
+        assert(device.bluetooth.class_of_device == raw_device.class_of_device);
+
+        mph_device_t address_match;
+        mph_device_init(&address_match);
+        address_match.category = MPH_DEVICE_CATEGORY_BLUETOOTH;
+        address_match.transport = MPH_DEVICE_TRANSPORT_BLUETOOTH;
+        assert(mph_device_set_bluetooth_address(&address_match, normalized_address) ==
+               MPH_STATUS_OK);
+        assert(mph_bluetooth_matches_device(&raw_device, &address_match));
+
+        if (expected_audio || expected_hid) {
+            mph_device_t linked_device;
+            mph_device_init(&linked_device);
+            linked_device.category =
+                expected_audio ? MPH_DEVICE_CATEGORY_AUDIO_OUTPUT : MPH_DEVICE_CATEGORY_MOUSE;
+            linked_device.transport = MPH_DEVICE_TRANSPORT_BLUETOOTH;
+            assert(mph_device_set_display_name(&linked_device, raw_device.name) == MPH_STATUS_OK);
+            assert(mph_bluetooth_matches_device(&raw_device, &linked_device));
+        }
+
+        size_t before_append = mph_device_list_count(dedup_list);
+        assert(mph_bluetooth_append_mapped_device(dedup_list, &raw_device) == MPH_STATUS_OK);
+        assert(mph_device_list_count(dedup_list) == before_append + 1);
+        assert(mph_bluetooth_append_mapped_device(dedup_list, &raw_device) == MPH_STATUS_OK);
+        assert(mph_device_list_count(dedup_list) == before_append + 1);
+
+        parsed_devices += 1;
+    }
+
+    mph_bluetooth_raw_device_t renamed_device;
+    mph_bluetooth_raw_device_init(&renamed_device);
+    snprintf(renamed_device.name, sizeof(renamed_device.name), "%s", "Renamed AirPods");
+    snprintf(renamed_device.address, sizeof(renamed_device.address), "%s", "aa:bb:cc:dd:ee:01");
+    renamed_device.is_paired = true;
+    renamed_device.is_connected = true;
+    size_t before_alias = mph_device_list_count(dedup_list);
+    assert(mph_bluetooth_append_mapped_device(dedup_list, &renamed_device) == MPH_STATUS_OK);
+    assert(mph_device_list_count(dedup_list) == before_alias);
+
+    fclose(fixture);
+    mph_device_list_destroy(dedup_list);
+    assert(parsed_devices == 5);
+}
+
 static void test_core_audio_live_smoke(void) {
     mph_device_list_t *list = mph_device_list_create();
     assert(list != NULL);
@@ -635,6 +731,26 @@ static void test_usb_live_smoke(void) {
         assert(device->transport == MPH_DEVICE_TRANSPORT_USB);
         assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
         assert(device->display_name[0] != '\0');
+    }
+
+    mph_device_list_destroy(list);
+}
+
+static void test_bluetooth_live_smoke(void) {
+    mph_device_list_t *list = mph_device_list_create();
+    assert(list != NULL);
+    assert(mph_bluetooth_enumerate_devices(list) == MPH_STATUS_OK);
+
+    for (size_t index = 0; index < mph_device_list_count(list); index += 1) {
+        const mph_device_t *device = mph_device_list_get(list, index);
+        assert(device != NULL);
+        assert(!mph_device_id_is_empty(&device->id));
+        assert(device->category == MPH_DEVICE_CATEGORY_BLUETOOTH);
+        assert(device->transport == MPH_DEVICE_TRANSPORT_BLUETOOTH);
+        assert(device->display_name[0] != '\0');
+        assert(device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED ||
+               device->connection_state == MPH_DEVICE_CONNECTION_DISCONNECTED);
+        assert(device->bluetooth.address[0] != '\0' || device->display_name[0] != '\0');
     }
 
     mph_device_list_destroy(list);
@@ -1056,11 +1172,13 @@ int main(void) {
     test_camera_mapper();
     test_hid_mapper();
     test_usb_mapper_and_dedup();
+    test_bluetooth_mapper_and_merge();
     test_core_audio_live_smoke();
     test_display_live_smoke();
     test_camera_live_smoke();
     test_hid_live_smoke();
     test_usb_live_smoke();
+    test_bluetooth_live_smoke();
     test_audio_watcher_live_smoke();
     test_profile_store();
     test_reconcile();

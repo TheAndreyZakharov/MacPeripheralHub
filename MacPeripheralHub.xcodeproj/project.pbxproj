@@ -18,7 +18,10 @@
 		2B3C4D5E6F708190A0B0C006 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F006 /* IOKit.framework */; };
 		2B3C4D5E6F708190A0B0C007 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F007 /* AVFoundation.framework */; };
 		2B3C4D5E6F708190A0B0C008 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F008 /* Foundation.framework */; };
+		2B3C4D5E6F708190A0B0C009 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F009 /* IOBluetooth.framework */; };
 		2B3C4D5E6F708190A0B0C024 /* mph_audio_watcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */; };
+		2B3C4D5E6F708190A0B0C030 /* mph_bluetooth.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S030 /* mph_bluetooth.c */; };
+		2B3C4D5E6F708190A0B0C031 /* mph_bluetooth_iobluetooth.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S031 /* mph_bluetooth_iobluetooth.m */; };
 		2B3C4D5E6F708190A0B0C026 /* mph_camera.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S026 /* mph_camera.c */; };
 		2B3C4D5E6F708190A0B0C027 /* mph_camera_avfoundation.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S027 /* mph_camera_avfoundation.m */; };
 		2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S011 /* mph_core.c */; };
@@ -63,9 +66,11 @@
 		2B3C4D5E6F708190A0B0F006 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0F007 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0F008 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		2B3C4D5E6F708190A0B0F009 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PeripheralCore.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H002 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H016 /* mph_audio_watcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_audio_watcher.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H021 /* mph_bluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_bluetooth.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H018 /* mph_camera.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_camera.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H003 /* mph_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_core.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H015 /* mph_core_audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_core_audio.h; sourceTree = "<group>"; };
@@ -84,8 +89,10 @@
 		2B3C4D5E6F708190A0B0H012 /* mph_selection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_selection.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H013 /* mph_time.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_time.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S011 /* mph_core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_core.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S030 /* mph_bluetooth.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_bluetooth.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S026 /* mph_camera.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_camera.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S027 /* mph_camera_avfoundation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = mph_camera_avfoundation.m; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S031 /* mph_bluetooth_iobluetooth.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = mph_bluetooth_iobluetooth.m; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S023 /* mph_core_audio.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_core_audio.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_audio_watcher.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S022 /* mph_db.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_db.c; sourceTree = "<group>"; };
@@ -116,6 +123,7 @@
 				2B3C4D5E6F708190A0B0C005 /* CoreGraphics.framework in Frameworks */,
 				2B3C4D5E6F708190A0B0C006 /* IOKit.framework in Frameworks */,
 				2B3C4D5E6F708190A0B0C007 /* AVFoundation.framework in Frameworks */,
+				2B3C4D5E6F708190A0B0C009 /* IOBluetooth.framework in Frameworks */,
 				2B3C4D5E6F708190A0B0C008 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -160,6 +168,7 @@
 				2B3C4D5E6F708190A0B0F005 /* CoreGraphics.framework */,
 				2B3C4D5E6F708190A0B0F006 /* IOKit.framework */,
 				2B3C4D5E6F708190A0B0F007 /* AVFoundation.framework */,
+				2B3C4D5E6F708190A0B0F009 /* IOBluetooth.framework */,
 				2B3C4D5E6F708190A0B0F008 /* Foundation.framework */,
 			);
 			name = Products;
@@ -205,6 +214,7 @@
 				2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */,
 				2B3C4D5E6F708190A0B0H002 /* module.modulemap */,
 				2B3C4D5E6F708190A0B0H016 /* mph_audio_watcher.h */,
+				2B3C4D5E6F708190A0B0H021 /* mph_bluetooth.h */,
 				2B3C4D5E6F708190A0B0H018 /* mph_camera.h */,
 				2B3C4D5E6F708190A0B0H003 /* mph_core.h */,
 				2B3C4D5E6F708190A0B0H015 /* mph_core_audio.h */,
@@ -230,6 +240,8 @@
 			isa = PBXGroup;
 			children = (
 				2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */,
+				2B3C4D5E6F708190A0B0S030 /* mph_bluetooth.c */,
+				2B3C4D5E6F708190A0B0S031 /* mph_bluetooth_iobluetooth.m */,
 				2B3C4D5E6F708190A0B0S026 /* mph_camera.c */,
 				2B3C4D5E6F708190A0B0S027 /* mph_camera_avfoundation.m */,
 				2B3C4D5E6F708190A0B0S011 /* mph_core.c */,
@@ -352,6 +364,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B3C4D5E6F708190A0B0C024 /* mph_audio_watcher.c in Sources */,
+				2B3C4D5E6F708190A0B0C030 /* mph_bluetooth.c in Sources */,
+				2B3C4D5E6F708190A0B0C031 /* mph_bluetooth_iobluetooth.m in Sources */,
 				2B3C4D5E6F708190A0B0C026 /* mph_camera.c in Sources */,
 				2B3C4D5E6F708190A0B0C027 /* mph_camera_avfoundation.m in Sources */,
 				2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */,

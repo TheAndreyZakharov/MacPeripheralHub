@@ -14,7 +14,7 @@ CORE_TEST_SOURCES := $(wildcard Core/tests/*.c)
 CC := clang
 CFLAGS := -std=c17 -Wall -Wextra -Werror -pedantic -I Core/include
 OBJCFLAGS := -fobjc-arc -Wall -Wextra -Werror -I Core/include
-CORE_LDFLAGS := -lsqlite3 -framework CoreAudio -framework CoreFoundation -framework CoreGraphics -framework IOKit -framework AVFoundation -framework Foundation
+CORE_LDFLAGS := -lsqlite3 -framework CoreAudio -framework CoreFoundation -framework CoreGraphics -framework IOKit -framework AVFoundation -framework IOBluetooth -framework Foundation
 
 all: build-app test-core
 

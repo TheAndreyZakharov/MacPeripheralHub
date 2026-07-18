@@ -231,15 +231,15 @@ Commit: `feat(system): enumerate USB devices and hubs`
 
 ## 12. Bluetooth
 
-- [ ] Создать adapter для IOBluetooth.
-- [ ] Получать paired devices.
-- [ ] Получать connected devices, если доступно.
-- [ ] Читать name.
-- [ ] Читать address.
-- [ ] Читать class of device, если доступно.
-- [ ] Связывать Bluetooth audio/HID devices с CoreAudio/HID entries, где возможно.
-- [ ] Не показывать один и тот же девайс дважды без причины.
-- [ ] Добавить tests для merge логики.
+- [x] Создать adapter для IOBluetooth.
+- [x] Получать paired devices.
+- [x] Получать connected devices, если доступно.
+- [x] Читать name.
+- [x] Читать address.
+- [x] Читать class of device, если доступно.
+- [x] Связывать Bluetooth audio/HID devices с CoreAudio/HID entries, где возможно.
+- [x] Не показывать один и тот же девайс дважды без причины.
+- [x] Добавить tests для merge логики.
 
 Commit: `feat(system): enumerate Bluetooth peripherals`
 
@@ -490,7 +490,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(system): enumerate cameras`
 - [x] `feat(system): enumerate HID peripherals`
 - [x] `feat(system): enumerate USB devices and hubs`
-- [ ] `feat(system): enumerate Bluetooth peripherals`
+- [x] `feat(system): enumerate Bluetooth peripherals`
 - [ ] `feat(core): aggregate peripheral inventory`
 - [ ] `feat(app): bridge C core into Swift app state`
 - [ ] `feat(ui): add main application window`
