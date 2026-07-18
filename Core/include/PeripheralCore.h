@@ -11,6 +11,7 @@
  - String pointers returned by *_cstr/name/version functions are borrowed and must not be freed.
  */
 
+#include "mph_audio_watcher.h"
 #include "mph_core.h"
 #include "mph_core_audio.h"
 #include "mph_db.h"

@@ -160,13 +160,13 @@ Commit: `feat(core): enforce selected audio defaults`
 
 ## 7. Watchers системных изменений
 
-- [ ] Подписаться на CoreAudio property listeners.
-- [ ] Обновлять state при изменении default input/output/system output.
-- [ ] Обновлять state при появлении/исчезновении audio devices.
-- [ ] Добавить fallback periodic scan.
-- [ ] Синхронизировать watchers с reconciliation engine.
-- [ ] Сделать thread-safe dispatch из system callbacks в app state.
-- [ ] Добавить логирование системных событий.
+- [x] Подписаться на CoreAudio property listeners.
+- [x] Обновлять state при изменении default input/output/system output.
+- [x] Обновлять state при появлении/исчезновении audio devices.
+- [x] Добавить fallback periodic scan.
+- [x] Синхронизировать watchers с reconciliation engine.
+- [x] Сделать thread-safe dispatch из system callbacks в app state.
+- [x] Добавить логирование системных событий.
 
 Commit: `feat(system): watch audio device changes`
 
@@ -485,7 +485,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(core): model peripheral devices and matching`
 - [x] `feat(system): enumerate and switch CoreAudio devices`
 - [x] `feat(core): enforce selected audio defaults`
-- [ ] `feat(system): watch audio device changes`
+- [x] `feat(system): watch audio device changes`
 - [ ] `feat(system): enumerate connected displays`
 - [ ] `feat(system): enumerate cameras`
 - [ ] `feat(system): enumerate HID peripherals`

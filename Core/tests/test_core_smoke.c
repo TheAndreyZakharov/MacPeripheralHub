@@ -1,13 +1,63 @@
 #include "PeripheralCore.h"
 
 #include <assert.h>
+#include <errno.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #define FIXTURE_FIELD_COUNT 12
+
+typedef struct {
+    pthread_mutex_t mutex;
+    pthread_cond_t condition;
+    size_t event_count;
+    uint32_t last_flags;
+    mph_status_t last_status;
+    size_t last_plan_action_count;
+} watcher_test_context_t;
+
+static void watcher_test_deadline(struct timespec *out_time) {
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    out_time->tv_sec = now.tv_sec + 2;
+    out_time->tv_nsec = (long)now.tv_usec * 1000L;
+}
+
+static void watcher_test_callback(const mph_audio_watcher_event_t *event, void *context) {
+    watcher_test_context_t *test_context = (watcher_test_context_t *)context;
+    assert(event != NULL);
+    assert(test_context != NULL);
+
+    pthread_mutex_lock(&test_context->mutex);
+    test_context->event_count += 1;
+    test_context->last_flags = event->flags;
+    test_context->last_status = event->status;
+    test_context->last_plan_action_count = event->plan.action_count;
+    pthread_cond_signal(&test_context->condition);
+    pthread_mutex_unlock(&test_context->mutex);
+}
+
+static bool watcher_wait_for_events(watcher_test_context_t *test_context, size_t expected_count) {
+    struct timespec deadline;
+    watcher_test_deadline(&deadline);
+
+    pthread_mutex_lock(&test_context->mutex);
+    while (test_context->event_count < expected_count) {
+        int wait_status =
+            pthread_cond_timedwait(&test_context->condition, &test_context->mutex, &deadline);
+        if (wait_status == ETIMEDOUT) {
+            break;
+        }
+    }
+    bool reached = test_context->event_count >= expected_count;
+    pthread_mutex_unlock(&test_context->mutex);
+    return reached;
+}
 
 static void test_device_list(void) {
     mph_device_t device;
@@ -229,6 +279,62 @@ static void test_core_audio_live_smoke(void) {
     assert(mph_core_audio_set_default_input(&missing_id) == MPH_STATUS_NOT_FOUND);
 
     mph_device_list_destroy(list);
+}
+
+static void test_audio_watcher_live_smoke(void) {
+    watcher_test_context_t test_context;
+    assert(pthread_mutex_init(&test_context.mutex, NULL) == 0);
+    assert(pthread_cond_init(&test_context.condition, NULL) == 0);
+    test_context.event_count = 0;
+    test_context.last_flags = MPH_AUDIO_WATCHER_EVENT_NONE;
+    test_context.last_status = MPH_STATUS_OK;
+    test_context.last_plan_action_count = 0;
+
+    mph_audio_watcher_config_t config;
+    mph_audio_watcher_config_init(&config);
+    config.apply_reconcile_actions = false;
+    config.fallback_scan_interval_ms = 250;
+    config.callback = watcher_test_callback;
+    config.callback_context = &test_context;
+
+    mph_audio_watcher_t *watcher = NULL;
+    assert(mph_audio_watcher_create(&watcher, &config) == MPH_STATUS_OK);
+    assert(watcher != NULL);
+    assert(!mph_audio_watcher_is_running(watcher));
+    assert(mph_audio_watcher_start(watcher) == MPH_STATUS_OK);
+    assert(mph_audio_watcher_is_running(watcher));
+    assert(mph_audio_watcher_request_scan(watcher, MPH_AUDIO_WATCHER_EVENT_MANUAL_SCAN) ==
+           MPH_STATUS_OK);
+    assert(watcher_wait_for_events(&test_context, 1));
+
+    pthread_mutex_lock(&test_context.mutex);
+    assert(test_context.last_status == MPH_STATUS_OK);
+    assert((test_context.last_flags &
+            (MPH_AUDIO_WATCHER_EVENT_MANUAL_SCAN | MPH_AUDIO_WATCHER_EVENT_PERIODIC_SCAN)) != 0);
+    size_t next_event_count = test_context.event_count + 1;
+    pthread_mutex_unlock(&test_context.mutex);
+
+    mph_selection_t desired;
+    mph_selection_init(&desired);
+    desired.mode = MPH_ACTIVE_MODE_MANUAL;
+    mph_device_id_t missing_output;
+    assert(mph_device_id_from_parts(&missing_output, "coreaudio.output",
+                                    "watcher-missing-output") == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&desired, MPH_DEVICE_ROLE_DEFAULT_OUTPUT,
+                                         &missing_output) == MPH_STATUS_OK);
+    assert(mph_audio_watcher_set_desired_selection(watcher, &desired) == MPH_STATUS_OK);
+    assert(watcher_wait_for_events(&test_context, next_event_count));
+
+    pthread_mutex_lock(&test_context.mutex);
+    assert(test_context.last_status == MPH_STATUS_OK);
+    assert(test_context.last_plan_action_count == 1);
+    pthread_mutex_unlock(&test_context.mutex);
+
+    mph_audio_watcher_stop(watcher);
+    assert(!mph_audio_watcher_is_running(watcher));
+    mph_audio_watcher_destroy(watcher);
+    pthread_cond_destroy(&test_context.condition);
+    pthread_mutex_destroy(&test_context.mutex);
 }
 
 static void test_profile_store(void) {
@@ -568,6 +674,7 @@ int main(void) {
     test_device_normalization_and_matching();
     test_core_audio_mapper();
     test_core_audio_live_smoke();
+    test_audio_watcher_live_smoke();
     test_profile_store();
     test_reconcile();
     test_reconcile_airpods_reset();

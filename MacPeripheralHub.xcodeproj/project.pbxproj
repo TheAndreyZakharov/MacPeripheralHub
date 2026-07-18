@@ -14,6 +14,7 @@
 		2B3C4D5E6F708190A0B0C002 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */; };
 		2B3C4D5E6F708190A0B0C003 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F003 /* CoreAudio.framework */; };
 		2B3C4D5E6F708190A0B0C004 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F004 /* CoreFoundation.framework */; };
+		2B3C4D5E6F708190A0B0C024 /* mph_audio_watcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */; };
 		2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S011 /* mph_core.c */; };
 		2B3C4D5E6F708190A0B0C023 /* mph_core_audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S023 /* mph_core_audio.c */; };
 		2B3C4D5E6F708190A0B0C022 /* mph_db.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S022 /* mph_db.c */; };
@@ -51,6 +52,7 @@
 		2B3C4D5E6F708190A0B0F004 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PeripheralCore.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H002 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H016 /* mph_audio_watcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_audio_watcher.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H003 /* mph_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_core.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H015 /* mph_core_audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_core_audio.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H014 /* mph_db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_db.h; sourceTree = "<group>"; };
@@ -66,6 +68,7 @@
 		2B3C4D5E6F708190A0B0H013 /* mph_time.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_time.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S011 /* mph_core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_core.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S023 /* mph_core_audio.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_core_audio.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_audio_watcher.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S022 /* mph_db.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_db.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S012 /* mph_device.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device.c; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device_id.c; sourceTree = "<group>"; };
@@ -171,6 +174,7 @@
 			children = (
 				2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */,
 				2B3C4D5E6F708190A0B0H002 /* module.modulemap */,
+				2B3C4D5E6F708190A0B0H016 /* mph_audio_watcher.h */,
 				2B3C4D5E6F708190A0B0H003 /* mph_core.h */,
 				2B3C4D5E6F708190A0B0H015 /* mph_core_audio.h */,
 				2B3C4D5E6F708190A0B0H014 /* mph_db.h */,
@@ -191,6 +195,7 @@
 		2B3C4D5E6F708190A0B0204 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */,
 				2B3C4D5E6F708190A0B0S011 /* mph_core.c */,
 				2B3C4D5E6F708190A0B0S023 /* mph_core_audio.c */,
 				2B3C4D5E6F708190A0B0S022 /* mph_db.c */,
@@ -307,6 +312,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B3C4D5E6F708190A0B0C024 /* mph_audio_watcher.c in Sources */,
 				2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */,
 				2B3C4D5E6F708190A0B0C023 /* mph_core_audio.c in Sources */,
 				2B3C4D5E6F708190A0B0C022 /* mph_db.c in Sources */,
