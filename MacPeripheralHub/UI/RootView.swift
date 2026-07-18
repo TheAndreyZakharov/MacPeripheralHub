@@ -78,6 +78,16 @@ final class RootView: NSView {
     private let deviceRefreshButton = NSButton()
     private let contentStack = NSStackView()
     private var deviceFilterText = ""
+    private var profileDraftID: String?
+    private var profileDraftName = ""
+    private var profileDraftRoleDeviceIDs: [DeviceRole: String] = [:]
+    private var profileDraftEnforceAudioDefaults = true
+    private var profileNameField: NSTextField?
+    private var profileEnforceButton: NSButton?
+    private var profileRolePickers: [DeviceRole: NSPopUpButton] = [:]
+    private var profileActionProfileIDs: [Int: String] = [:]
+    private var profilePickerRoles: [Int: DeviceRole] = [:]
+    private var nextProfileActionTag = 2000
 
     init(appState: AppState, frame frameRect: NSRect = .zero) {
         self.appState = appState
@@ -584,20 +594,442 @@ final class RootView: NSView {
     }
 
     private func makeProfileViews() -> [NSView] {
-        if snapshot.profiles.isEmpty {
-            return [makeStateView(title: "No profiles yet", detail: "")]
+        resetProfileActionMaps()
+        var views = [makeProfileToolbar()]
+
+        if profileDraftID != nil {
+            views.append(makeProfileEditorView())
         }
 
-        return snapshot.profiles.map { profile in
-            let selected = snapshot.activeSelection.mode == .profile &&
-                snapshot.activeSelection.profileID == profile.id
-            let roleCount = profile.selection.roleDeviceIDs.count
-            return makeMetricRow(
-                title: profile.name,
-                value: selected ? "Active" : "\(roleCount) selected",
-                detail: profile.id
-            )
+        if snapshot.profiles.isEmpty {
+            views.append(makeStateView(title: "No profiles yet", detail: ""))
+            return views
         }
+
+        views.append(makeSectionHeader(title: "Saved Profiles", count: snapshot.profiles.count))
+        views.append(contentsOf: snapshot.profiles.map { profile in
+            makeProfileRow(profile)
+        })
+        return views
+    }
+
+    private func makeProfileToolbar() -> NSView {
+        let total = snapshot.profiles.count
+        let activeName = activeProfileDisplayName()
+        let summary = makeLabel("\(total) profiles / active: \(activeName)", size: 12, weight: .regular, color: .secondaryLabelColor)
+        summary.lineBreakMode = .byTruncatingTail
+
+        let newButton = makeActionButton(title: "New Profile", symbolName: "plus", action: #selector(beginCreateProfile))
+        newButton.isEnabled = profileDraftID == nil
+
+        let row = NSStackView(views: [summary, NSView(), newButton])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        row.wantsLayer = true
+        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.cornerRadius = 6
+        return row
+    }
+
+    private func makeProfileEditorView() -> NSView {
+        profileRolePickers.removeAll()
+
+        let title = makeLabel(profileEditorTitle(), size: 15, weight: .semibold, color: .labelColor)
+
+        let nameField = NSTextField(string: profileDraftName)
+        nameField.placeholderString = "Profile name"
+        nameField.target = self
+        nameField.action = #selector(profileNameSubmitted(_:))
+        nameField.translatesAutoresizingMaskIntoConstraints = false
+        nameField.widthAnchor.constraint(greaterThanOrEqualToConstant: 260).isActive = true
+        profileNameField = nameField
+
+        let nameRow = makeProfileFormRow(title: "Name", control: nameField)
+
+        let enforceButton = NSButton(checkboxWithTitle: "Enforce audio defaults", target: self, action: #selector(profileEnforceChanged(_:)))
+        enforceButton.state = profileDraftEnforceAudioDefaults ? .on : .off
+        enforceButton.toolTip = "Keep selected audio devices as system defaults while this profile is active"
+        profileEnforceButton = enforceButton
+
+        let enforceRow = makeProfileFormRow(title: "Behavior", control: enforceButton)
+
+        var rows: [NSView] = [title, nameRow, enforceRow]
+        for role in DeviceRole.allCases {
+            rows.append(makeProfileRolePickerRow(for: role))
+        }
+
+        let saveButton = makeActionButton(title: "Save", symbolName: "checkmark", action: #selector(saveProfileDraft))
+        saveButton.keyEquivalent = "\r"
+
+        let cancelButton = makeActionButton(title: "Cancel", symbolName: "xmark", action: #selector(cancelProfileEditing))
+        let actions = NSStackView(views: [NSView(), cancelButton, saveButton])
+        actions.orientation = .horizontal
+        actions.alignment = .centerY
+        actions.spacing = 8
+        rows.append(actions)
+
+        let stack = NSStackView(views: rows)
+        stack.orientation = .vertical
+        stack.alignment = .width
+        stack.spacing = 10
+        stack.edgeInsets = NSEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
+        stack.wantsLayer = true
+        stack.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        stack.layer?.cornerRadius = 6
+        return stack
+    }
+
+    private func makeProfileRolePickerRow(for role: DeviceRole) -> NSView {
+        let picker = NSPopUpButton()
+        picker.bezelStyle = .rounded
+        picker.target = self
+        picker.action = #selector(profilePickerChanged(_:))
+        picker.tag = nextProfileActionTag
+        picker.toolTip = role.title
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.widthAnchor.constraint(greaterThanOrEqualToConstant: 300).isActive = true
+        profilePickerRoles[picker.tag] = role
+        nextProfileActionTag += 1
+
+        populateProfilePicker(picker, for: role)
+        profileRolePickers[role] = picker
+
+        return makeProfileFormRow(title: role.title, control: picker)
+    }
+
+    private func makeProfileFormRow(title: String, control: NSView) -> NSView {
+        let titleLabel = makeLabel(title, size: 13, weight: .medium, color: .secondaryLabelColor)
+
+        let row = NSStackView(views: [titleLabel, NSView(), control])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
+        return row
+    }
+
+    private func makeProfileRow(_ profile: ProfileViewModel) -> NSView {
+        let selected = snapshot.activeSelection.mode == .profile &&
+            snapshot.activeSelection.profileID == profile.id
+        let roleCount = profile.selection.roleDeviceIDs.count
+
+        let title = makeLabel(profile.name, size: 13, weight: .medium, color: .labelColor)
+        title.lineBreakMode = .byTruncatingTail
+
+        let subtitle = makeLabel(profileSummary(for: profile), size: 12, weight: .regular, color: .secondaryLabelColor)
+        subtitle.lineBreakMode = .byTruncatingTail
+
+        let detail = makeLabel(profileRoleSummary(for: profile), size: 11, weight: .regular, color: .tertiaryLabelColor)
+        detail.maximumNumberOfLines = 4
+        detail.lineBreakMode = .byTruncatingTail
+
+        let textStack = NSStackView(views: [title, subtitle, detail])
+        textStack.orientation = .vertical
+        textStack.alignment = .leading
+        textStack.spacing = 3
+
+        let activeLabel = makeStatusLabel(selected ? "Active" : "\(roleCount) selected")
+        let activateButton = makeProfileActionButton(
+            title: "Activate",
+            symbolName: "play.fill",
+            profileID: profile.id,
+            action: #selector(activateProfileFromButton(_:))
+        )
+        activateButton.isEnabled = !selected
+
+        let editButton = makeProfileActionButton(
+            title: "Edit",
+            symbolName: "pencil",
+            profileID: profile.id,
+            action: #selector(beginEditProfile(_:))
+        )
+        editButton.isEnabled = profileDraftID == nil
+
+        let deleteButton = makeProfileActionButton(
+            title: "Delete",
+            symbolName: "trash",
+            profileID: profile.id,
+            action: #selector(deleteProfileFromButton(_:))
+        )
+        deleteButton.isEnabled = profileDraftID == nil
+
+        let actions = NSStackView(views: [activeLabel, activateButton, editButton, deleteButton])
+        actions.orientation = .horizontal
+        actions.alignment = .centerY
+        actions.spacing = 6
+
+        let row = NSStackView(views: [textStack, NSView(), actions])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        row.wantsLayer = true
+        row.layer?.backgroundColor = selected
+            ? NSColor.controlAccentColor.withAlphaComponent(0.12).cgColor
+            : NSColor.controlBackgroundColor.cgColor
+        row.layer?.cornerRadius = 6
+        return row
+    }
+
+    private func makeActionButton(title: String, symbolName: String, action: Selector) -> NSButton {
+        let button = NSButton(title: title, target: self, action: action)
+        button.bezelStyle = .rounded
+        button.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: title)
+        button.imagePosition = .imageLeading
+        button.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        button.toolTip = title
+        return button
+    }
+
+    private func makeProfileActionButton(
+        title: String,
+        symbolName: String,
+        profileID: String,
+        action: Selector
+    ) -> NSButton {
+        let button = makeActionButton(title: title, symbolName: symbolName, action: action)
+        button.tag = nextProfileActionTag
+        profileActionProfileIDs[button.tag] = profileID
+        nextProfileActionTag += 1
+        return button
+    }
+
+    private func populateProfilePicker(_ picker: NSPopUpButton, for role: DeviceRole) {
+        picker.removeAllItems()
+
+        let selectedID = profileDraftRoleDeviceIDs[role]
+        let candidates = candidateDevices(for: role)
+
+        picker.addItem(withTitle: "Not selected")
+        picker.lastItem?.representedObject = ""
+
+        var knownIDs = Set<String>()
+        for device in candidates {
+            knownIDs.insert(device.id)
+            picker.addItem(withTitle: pickerTitle(for: device))
+            picker.lastItem?.representedObject = device.id
+            picker.lastItem?.isEnabled = device.isConnected
+        }
+
+        if let selectedID, !selectedID.isEmpty, !knownIDs.contains(selectedID) {
+            picker.addItem(withTitle: "Missing: \(selectedID)")
+            picker.lastItem?.representedObject = selectedID
+            picker.lastItem?.isEnabled = true
+        }
+
+        if let selectedID,
+           let item = picker.itemArray.first(where: { representedString(from: $0) == selectedID }) {
+            picker.select(item)
+        } else {
+            picker.selectItem(at: 0)
+        }
+    }
+
+    @objc private func beginCreateProfile() {
+        let existingNames = Set(snapshot.profiles.map { $0.name })
+        var index = snapshot.profiles.count + 1
+        var candidateName = "New Profile \(index)"
+        while existingNames.contains(candidateName) {
+            index += 1
+            candidateName = "New Profile \(index)"
+        }
+
+        profileDraftID = UUID().uuidString
+        profileDraftName = candidateName
+        profileDraftRoleDeviceIDs = defaultProfileRoleDeviceIDs()
+        profileDraftEnforceAudioDefaults = snapshot.activeSelection.enforceAudioDefaults
+        render()
+    }
+
+    @objc private func beginEditProfile(_ sender: NSButton) {
+        guard let profileID = profileActionProfileIDs[sender.tag],
+              let profile = snapshot.profiles.first(where: { $0.id == profileID }) else {
+            return
+        }
+
+        profileDraftID = profile.id
+        profileDraftName = profile.name
+        profileDraftRoleDeviceIDs = profile.selection.roleDeviceIDs
+        profileDraftEnforceAudioDefaults = profile.selection.enforceAudioDefaults
+        render()
+    }
+
+    @objc private func saveProfileDraft() {
+        guard let profileID = profileDraftID else {
+            return
+        }
+
+        let now = currentUnixMilliseconds()
+        let existingProfile = snapshot.profiles.first { $0.id == profileID }
+        let name = profileNameField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? profileDraftName
+        profileDraftName = name.isEmpty ? "Untitled Profile" : name
+        profileDraftEnforceAudioDefaults = profileEnforceButton?.state == .on
+
+        for role in DeviceRole.allCases {
+            guard let picker = profileRolePickers[role],
+                  let deviceID = representedString(from: picker.selectedItem) else {
+                continue
+            }
+
+            if deviceID.isEmpty {
+                profileDraftRoleDeviceIDs.removeValue(forKey: role)
+            } else {
+                profileDraftRoleDeviceIDs[role] = deviceID
+            }
+        }
+
+        let selection = SelectionViewModel(
+            mode: .profile,
+            profileID: profileID,
+            roleDeviceIDs: profileDraftRoleDeviceIDs,
+            enforceAudioDefaults: profileDraftEnforceAudioDefaults
+        )
+        let profile = ProfileViewModel(
+            id: profileID,
+            name: profileDraftName,
+            selection: selection,
+            createdAtUnixMilliseconds: existingProfile?.createdAtUnixMilliseconds ?? now,
+            updatedAtUnixMilliseconds: now
+        )
+
+        clearProfileDraft()
+        appState.saveProfile(profile)
+        render()
+    }
+
+    @objc private func cancelProfileEditing() {
+        clearProfileDraft()
+        render()
+    }
+
+    @objc private func profileNameSubmitted(_ sender: NSTextField) {
+        profileDraftName = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    @objc private func profileEnforceChanged(_ sender: NSButton) {
+        profileDraftEnforceAudioDefaults = sender.state == .on
+    }
+
+    @objc private func profilePickerChanged(_ sender: NSPopUpButton) {
+        guard let role = profilePickerRoles[sender.tag],
+              let deviceID = representedString(from: sender.selectedItem) else {
+            return
+        }
+
+        if deviceID.isEmpty {
+            profileDraftRoleDeviceIDs.removeValue(forKey: role)
+        } else {
+            profileDraftRoleDeviceIDs[role] = deviceID
+        }
+    }
+
+    @objc private func activateProfileFromButton(_ sender: NSButton) {
+        guard let profileID = profileActionProfileIDs[sender.tag] else {
+            return
+        }
+
+        clearProfileDraft()
+        appState.activateProfile(id: profileID)
+    }
+
+    @objc private func deleteProfileFromButton(_ sender: NSButton) {
+        guard let profileID = profileActionProfileIDs[sender.tag] else {
+            return
+        }
+
+        if profileDraftID == profileID {
+            clearProfileDraft()
+        }
+        appState.deleteProfile(id: profileID)
+    }
+
+    private func resetProfileActionMaps() {
+        profileActionProfileIDs.removeAll()
+        profilePickerRoles.removeAll()
+        nextProfileActionTag = 2000
+    }
+
+    private func clearProfileDraft() {
+        profileDraftID = nil
+        profileDraftName = ""
+        profileDraftRoleDeviceIDs.removeAll()
+        profileDraftEnforceAudioDefaults = true
+        profileNameField = nil
+        profileEnforceButton = nil
+        profileRolePickers.removeAll()
+    }
+
+    private func defaultProfileRoleDeviceIDs() -> [DeviceRole: String] {
+        var roleDeviceIDs: [DeviceRole: String] = [:]
+        for role in DeviceRole.allCases {
+            if let activeID = snapshot.activeSelection.deviceID(for: role) {
+                roleDeviceIDs[role] = activeID
+            } else if let currentID = currentDefaultDevice(for: role)?.id {
+                roleDeviceIDs[role] = currentID
+            }
+        }
+        return roleDeviceIDs
+    }
+
+    private func profileEditorTitle() -> String {
+        guard let profileDraftID else {
+            return "Profile"
+        }
+
+        if snapshot.profiles.contains(where: { $0.id == profileDraftID }) {
+            return "Edit Profile"
+        }
+
+        return "Create Profile"
+    }
+
+    private func activeProfileDisplayName() -> String {
+        guard snapshot.activeSelection.mode == .profile,
+              let profileID = snapshot.activeSelection.profileID else {
+            return "none"
+        }
+
+        return snapshot.profiles.first { $0.id == profileID }?.name ?? profileID
+    }
+
+    private func profileSummary(for profile: ProfileViewModel) -> String {
+        let mode = profile.selection.enforceAudioDefaults ? "audio enforcement on" : "audio enforcement off"
+        return "\(mode) / updated \(formatUnixMilliseconds(profile.updatedAtUnixMilliseconds))"
+    }
+
+    private func profileRoleSummary(for profile: ProfileViewModel) -> String {
+        if profile.selection.roleDeviceIDs.isEmpty {
+            return "No devices selected"
+        }
+
+        return DeviceRole.allCases.compactMap { role in
+            guard let deviceID = profile.selection.deviceID(for: role) else {
+                return nil
+            }
+            return "\(role.title): \(profileDeviceName(for: deviceID))"
+        }.joined(separator: "\n")
+    }
+
+    private func profileDeviceName(for deviceID: String) -> String {
+        guard let device = device(namedBy: deviceID) else {
+            return "Missing: \(deviceID)"
+        }
+
+        return device.isConnected ? device.displayName : "\(device.displayName) (offline)"
+    }
+
+    private func currentUnixMilliseconds() -> UInt64 {
+        UInt64(Date().timeIntervalSince1970 * 1000)
+    }
+
+    private func formatUnixMilliseconds(_ milliseconds: UInt64) -> String {
+        let date = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000)
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 
     private func makeDeviceRow(_ device: DeviceViewModel) -> NSView {
