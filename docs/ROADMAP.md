@@ -369,13 +369,13 @@ Commit: `feat(app): add launch at login support`
 
 ## 22. Background service loop
 
-- [ ] Запускать inventory watchers при старте приложения.
-- [ ] Запускать reconciliation loop при старте приложения.
-- [ ] Поддерживать active profile/manual state даже без открытого окна.
-- [ ] При wake from sleep делать refresh и reconciliation.
-- [ ] При смене пользователя/аудиосессии корректно перечитывать state.
-- [ ] Добавить logs для диагностики.
-- [ ] Не делать busy polling.
+- [x] Запускать inventory watchers при старте приложения.
+- [x] Запускать reconciliation loop при старте приложения.
+- [x] Поддерживать active profile/manual state даже без открытого окна.
+- [x] При wake from sleep делать refresh и reconciliation.
+- [x] При смене пользователя/аудиосессии корректно перечитывать state.
+- [x] Добавить logs для диагностики.
+- [x] Не делать busy polling.
 
 Commit: `feat(app): keep selected devices active in background`
 
@@ -500,7 +500,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(menubar): add status item controls`
 - [x] `feat(app): hide Dock icon when window closes`
 - [x] `feat(app): add launch at login support`
-- [ ] `feat(app): keep selected devices active in background`
+- [x] `feat(app): keep selected devices active in background`
 - [ ] `chore(app): add app resources and metadata`
 - [ ] `chore(app): configure permissions and privacy strings`
 - [ ] `test(core): cover profiles inventory and reconciliation`

@@ -149,6 +149,33 @@ final class PeripheralCoreBridge: @unchecked Sendable {
         return try activateManualSelection(activeSelection)
     }
 
+    func makeAudioWatcher(
+        desiredSelection: SelectionViewModel,
+        eventHandler: @escaping @Sendable (AudioWatcherEventViewModel) -> Void
+    ) throws -> PeripheralAudioWatcher {
+        let selection = try makeSelection(
+            desiredSelection,
+            mode: desiredSelection.mode,
+            profileID: desiredSelection.profileID
+        )
+        return try PeripheralAudioWatcher(
+            initialSelection: selection,
+            eventHandler: eventHandler
+        )
+    }
+
+    func updateAudioWatcher(
+        _ watcher: PeripheralAudioWatcher,
+        desiredSelection: SelectionViewModel
+    ) throws {
+        let selection = try makeSelection(
+            desiredSelection,
+            mode: desiredSelection.mode,
+            profileID: desiredSelection.profileID
+        )
+        try watcher.setDesiredSelection(selection)
+    }
+
     private func withDatabase<T>(operation: String, _ body: (OpaquePointer) throws -> T) throws -> T {
         var db: OpaquePointer?
         try check(mph_db_open_application_support(&db), operation: operation)
@@ -498,5 +525,127 @@ final class PeripheralCoreBridge: @unchecked Sendable {
 
     private func hex(_ value: UInt32) -> String {
         value == 0 ? "0" : String(format: "0x%04X", value)
+    }
+}
+
+private final class AudioWatcherCallbackBox: @unchecked Sendable {
+    let handler: @Sendable (AudioWatcherEventViewModel) -> Void
+
+    init(handler: @escaping @Sendable (AudioWatcherEventViewModel) -> Void) {
+        self.handler = handler
+    }
+}
+
+private func audioWatcherCallback(
+    _ eventPointer: UnsafePointer<mph_audio_watcher_event_t>?,
+    _ context: UnsafeMutableRawPointer?
+) {
+    guard let eventPointer, let context else {
+        return
+    }
+
+    let box = Unmanaged<AudioWatcherCallbackBox>
+        .fromOpaque(context)
+        .takeUnretainedValue()
+    let event = eventPointer.pointee
+    box.handler(
+        AudioWatcherEventViewModel(
+            flags: event.flags,
+            statusName: String(cString: mph_status_name(event.status)),
+            actionCount: event.plan.action_count,
+            availableAudioDeviceCount: event.available_audio_device_count,
+            timestampUnixMilliseconds: event.timestamp_unix_ms
+        )
+    )
+}
+
+final class PeripheralAudioWatcher: @unchecked Sendable {
+    private var watcher: OpaquePointer?
+    private let callbackBox: AudioWatcherCallbackBox
+
+    init(
+        initialSelection: mph_selection_t,
+        eventHandler: @escaping @Sendable (AudioWatcherEventViewModel) -> Void
+    ) throws {
+        callbackBox = AudioWatcherCallbackBox(handler: eventHandler)
+
+        var config = mph_audio_watcher_config_t()
+        mph_audio_watcher_config_init(&config)
+        config.desired_selection = initialSelection
+        config.apply_reconcile_actions = true
+        config.callback = audioWatcherCallback
+        config.callback_context = Unmanaged.passUnretained(callbackBox).toOpaque()
+
+        var createdWatcher: OpaquePointer?
+        let status = mph_audio_watcher_create(&createdWatcher, &config)
+        guard mph_status_is_ok(status), let createdWatcher else {
+            throw PeripheralCoreBridgeError(
+                operation: "Create background audio watcher",
+                statusName: String(cString: mph_status_name(status))
+            )
+        }
+
+        watcher = createdWatcher
+    }
+
+    deinit {
+        stop()
+        if let watcher {
+            mph_audio_watcher_destroy(watcher)
+        }
+    }
+
+    func start() throws {
+        try withWatcher(operation: "Start background audio watcher") { watcher in
+            mph_audio_watcher_start(watcher)
+        }
+    }
+
+    func stop() {
+        if let watcher {
+            mph_audio_watcher_stop(watcher)
+        }
+    }
+
+    func setDesiredSelection(_ selection: mph_selection_t) throws {
+        try withWatcher(operation: "Update background audio selection") { watcher in
+            var mutableSelection = selection
+            return withUnsafePointer(to: &mutableSelection) { pointer in
+                mph_audio_watcher_set_desired_selection(watcher, pointer)
+            }
+        }
+    }
+
+    func requestManualScan() throws {
+        try withWatcher(operation: "Request background audio scan") { watcher in
+            mph_audio_watcher_request_scan(watcher, UInt32(MPH_AUDIO_WATCHER_EVENT_MANUAL_SCAN.rawValue))
+        }
+    }
+
+    var isRunning: Bool {
+        guard let watcher else {
+            return false
+        }
+        return mph_audio_watcher_is_running(watcher)
+    }
+
+    private func withWatcher(
+        operation: String,
+        _ body: (OpaquePointer) -> mph_status_t
+    ) throws {
+        guard let watcher else {
+            throw PeripheralCoreBridgeError(
+                operation: operation,
+                statusName: String(cString: mph_status_name(MPH_STATUS_INVALID_ARGUMENT))
+            )
+        }
+
+        let status = body(watcher)
+        guard mph_status_is_ok(status) else {
+            throw PeripheralCoreBridgeError(
+                operation: operation,
+                statusName: String(cString: mph_status_name(status))
+            )
+        }
     }
 }

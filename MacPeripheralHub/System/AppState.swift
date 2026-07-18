@@ -12,6 +12,7 @@ final class AppState: ObservableObject {
 
     private let core: PeripheralCoreBridge
     private let loginItems: LoginItemController
+    private lazy var backgroundServices = BackgroundServiceController(core: core, appState: self)
 
     init(
         core: PeripheralCoreBridge = PeripheralCoreBridge(),
@@ -27,6 +28,18 @@ final class AppState: ObservableObject {
         reloadProfiles()
         reloadActiveSelection()
         refreshLoginItemStatus()
+    }
+
+    func startBackgroundServices() {
+        backgroundServices.start()
+    }
+
+    func stopBackgroundServices() {
+        backgroundServices.stop()
+    }
+
+    func requestBackgroundReconciliation(reason: String) {
+        backgroundServices.requestImmediateReconciliation(reason: reason)
     }
 
     func refreshLoginItemStatus() {
@@ -180,6 +193,10 @@ final class AppState: ObservableObject {
 
     func dismissError() {
         error = nil
+    }
+
+    func reportBackgroundServiceError(_ error: Error, operation: String) {
+        presentError(error, operation: operation)
     }
 
     private func upsertProfile(_ profile: ProfileViewModel) {

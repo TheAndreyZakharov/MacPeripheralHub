@@ -16,8 +16,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.showMainWindow(nil)
         }
         showMainWindow(nil)
+        appState.startBackgroundServices()
         appState.refreshAll()
         showLaunchAtLoginPromptIfNeeded()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        appState.stopBackgroundServices()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

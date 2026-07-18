@@ -15,6 +15,7 @@
 		1A2B3C4D5E6F708190A0B0C6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B008 /* AppState.swift */; };
 		1A2B3C4D5E6F708190A0B0C7 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B009 /* StatusMenuController.swift */; };
 		1A2B3C4D5E6F708190A0B0C8 /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B00A /* LoginItemController.swift */; };
+		1A2B3C4D5E6F708190A0B0C9 /* BackgroundServiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B00B /* BackgroundServiceController.swift */; };
 		2B3C4D5E6F708190A0B0C001 /* libPeripheralCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */; };
 		2B3C4D5E6F708190A0B0C002 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */; };
 		2B3C4D5E6F708190A0B0C003 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F003 /* CoreAudio.framework */; };
@@ -71,6 +72,7 @@
 		1A2B3C4D5E6F708190A0B008 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B009 /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B00A /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708190A0B00B /* BackgroundServiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundServiceController.swift; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPeripheralCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0F003 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -225,6 +227,7 @@
 			isa = PBXGroup;
 			children = (
 				1A2B3C4D5E6F708190A0B008 /* AppState.swift */,
+				1A2B3C4D5E6F708190A0B00B /* BackgroundServiceController.swift */,
 				1A2B3C4D5E6F708190A0B006 /* CoreModels.swift */,
 				1A2B3C4D5E6F708190A0B00A /* LoginItemController.swift */,
 				1A2B3C4D5E6F708190A0B007 /* PeripheralCoreBridge.swift */,
@@ -400,6 +403,7 @@
 			files = (
 				1A2B3C4D5E6F708190A0B0C1 /* AppDelegate.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C6 /* AppState.swift in Sources */,
+				1A2B3C4D5E6F708190A0B0C9 /* BackgroundServiceController.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C4 /* CoreModels.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C8 /* LoginItemController.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C2 /* MainWindowController.swift in Sources */,

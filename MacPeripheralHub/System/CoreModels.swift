@@ -275,6 +275,39 @@ struct SelectionViewModel: Equatable, Sendable {
     }
 }
 
+struct AudioWatcherEventViewModel: Equatable, Sendable {
+    let flags: UInt32
+    let statusName: String
+    let actionCount: Int
+    let availableAudioDeviceCount: Int
+    let timestampUnixMilliseconds: UInt64
+
+    var didApplyReconcile: Bool {
+        contains(MPH_AUDIO_WATCHER_EVENT_RECONCILE_APPLIED)
+    }
+
+    var didFailReconcile: Bool {
+        contains(MPH_AUDIO_WATCHER_EVENT_RECONCILE_FAILED)
+    }
+
+    var shouldRefreshInventory: Bool {
+        contains(MPH_AUDIO_WATCHER_EVENT_DEFAULT_INPUT_CHANGED) ||
+            contains(MPH_AUDIO_WATCHER_EVENT_DEFAULT_OUTPUT_CHANGED) ||
+            contains(MPH_AUDIO_WATCHER_EVENT_DEFAULT_SYSTEM_OUTPUT_CHANGED) ||
+            contains(MPH_AUDIO_WATCHER_EVENT_DEVICES_CHANGED) ||
+            didApplyReconcile ||
+            didFailReconcile
+    }
+
+    var summary: String {
+        "flags=\(flags) status=\(statusName) actions=\(actionCount) audioDevices=\(availableAudioDeviceCount)"
+    }
+
+    private func contains(_ flag: mph_audio_watcher_event_flag_t) -> Bool {
+        flags & UInt32(flag.rawValue) != 0
+    }
+}
+
 struct ProfileViewModel: Identifiable, Equatable, Sendable {
     let id: String
     var name: String
