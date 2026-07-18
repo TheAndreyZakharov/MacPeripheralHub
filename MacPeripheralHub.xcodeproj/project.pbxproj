@@ -14,6 +14,7 @@
 		1A2B3C4D5E6F708190A0B0C5 /* PeripheralCoreBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B007 /* PeripheralCoreBridge.swift */; };
 		1A2B3C4D5E6F708190A0B0C6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B008 /* AppState.swift */; };
 		1A2B3C4D5E6F708190A0B0C7 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B009 /* StatusMenuController.swift */; };
+		1A2B3C4D5E6F708190A0B0C8 /* LoginItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B00A /* LoginItemController.swift */; };
 		2B3C4D5E6F708190A0B0C001 /* libPeripheralCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */; };
 		2B3C4D5E6F708190A0B0C002 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */; };
 		2B3C4D5E6F708190A0B0C003 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F003 /* CoreAudio.framework */; };
@@ -23,6 +24,7 @@
 		2B3C4D5E6F708190A0B0C007 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F007 /* AVFoundation.framework */; };
 		2B3C4D5E6F708190A0B0C008 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F008 /* Foundation.framework */; };
 		2B3C4D5E6F708190A0B0C009 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F009 /* IOBluetooth.framework */; };
+		2B3C4D5E6F708190A0B0C010 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F010 /* ServiceManagement.framework */; };
 		2B3C4D5E6F708190A0B0C024 /* mph_audio_watcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S024 /* mph_audio_watcher.c */; };
 		2B3C4D5E6F708190A0B0C030 /* mph_bluetooth.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S030 /* mph_bluetooth.c */; };
 		2B3C4D5E6F708190A0B0C031 /* mph_bluetooth_iobluetooth.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S031 /* mph_bluetooth_iobluetooth.m */; };
@@ -68,6 +70,7 @@
 		1A2B3C4D5E6F708190A0B007 /* PeripheralCoreBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralCoreBridge.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B008 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B009 /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708190A0B00A /* LoginItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemController.swift; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPeripheralCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B3C4D5E6F708190A0B0F002 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0F003 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -77,6 +80,7 @@
 		2B3C4D5E6F708190A0B0F007 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0F008 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0F009 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
+		2B3C4D5E6F708190A0B0F010 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PeripheralCore.h; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H002 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		2B3C4D5E6F708190A0B0H016 /* mph_audio_watcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_audio_watcher.h; sourceTree = "<group>"; };
@@ -139,6 +143,7 @@
 				2B3C4D5E6F708190A0B0C007 /* AVFoundation.framework in Frameworks */,
 				2B3C4D5E6F708190A0B0C009 /* IOBluetooth.framework in Frameworks */,
 				2B3C4D5E6F708190A0B0C008 /* Foundation.framework in Frameworks */,
+				2B3C4D5E6F708190A0B0C010 /* ServiceManagement.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +191,7 @@
 				2B3C4D5E6F708190A0B0F007 /* AVFoundation.framework */,
 				2B3C4D5E6F708190A0B0F009 /* IOBluetooth.framework */,
 				2B3C4D5E6F708190A0B0F008 /* Foundation.framework */,
+				2B3C4D5E6F708190A0B0F010 /* ServiceManagement.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -220,6 +226,7 @@
 			children = (
 				1A2B3C4D5E6F708190A0B008 /* AppState.swift */,
 				1A2B3C4D5E6F708190A0B006 /* CoreModels.swift */,
+				1A2B3C4D5E6F708190A0B00A /* LoginItemController.swift */,
 				1A2B3C4D5E6F708190A0B007 /* PeripheralCoreBridge.swift */,
 			);
 			path = System;
@@ -394,6 +401,7 @@
 				1A2B3C4D5E6F708190A0B0C1 /* AppDelegate.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C6 /* AppState.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C4 /* CoreModels.swift in Sources */,
+				1A2B3C4D5E6F708190A0B0C8 /* LoginItemController.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C2 /* MainWindowController.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C5 /* PeripheralCoreBridge.swift in Sources */,
 				1A2B3C4D5E6F708190A0B0C3 /* RootView.swift in Sources */,

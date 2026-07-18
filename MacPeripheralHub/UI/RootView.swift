@@ -5,6 +5,7 @@ private enum AppSection: Int, CaseIterable {
     case manualControl
     case devices
     case profiles
+    case settings
 
     var title: String {
         switch self {
@@ -14,6 +15,8 @@ private enum AppSection: Int, CaseIterable {
             return "Devices"
         case .profiles:
             return "Profiles"
+        case .settings:
+            return "Settings"
         }
     }
 
@@ -25,6 +28,8 @@ private enum AppSection: Int, CaseIterable {
             return "Connected and remembered peripherals"
         case .profiles:
             return "Saved device combinations"
+        case .settings:
+            return "App behavior and startup"
         }
     }
 
@@ -36,6 +41,8 @@ private enum AppSection: Int, CaseIterable {
             return "display.2"
         case .profiles:
             return "person.crop.rectangle.stack"
+        case .settings:
+            return "gearshape"
         }
     }
 }
@@ -46,6 +53,7 @@ final class RootView: NSView {
         var profiles: [ProfileViewModel]
         var activeSelection: SelectionViewModel
         var isRefreshingInventory: Bool
+        var loginItem: LoginItemViewModel
         var error: AppErrorViewModel?
 
         static let empty = Snapshot(
@@ -53,6 +61,7 @@ final class RootView: NSView {
             profiles: [],
             activeSelection: .empty,
             isRefreshingInventory: false,
+            loginItem: .unknown,
             error: nil
         )
     }
@@ -323,6 +332,14 @@ final class RootView: NSView {
                 self?.render()
             }
             .store(in: &cancellables)
+
+        appState.$loginItem
+            .receive(on: RunLoop.main)
+            .sink { [weak self] loginItem in
+                self?.snapshot.loginItem = loginItem
+                self?.render()
+            }
+            .store(in: &cancellables)
     }
 
     @objc private func selectSection(_ sender: NSButton) {
@@ -336,6 +353,14 @@ final class RootView: NSView {
 
     @objc private func refreshInventory() {
         appState.refreshInventory()
+    }
+
+    @objc private func loginItemToggleChanged(_ sender: NSButton) {
+        appState.setLaunchAtLoginEnabled(sender.state == .on)
+    }
+
+    @objc private func refreshLoginItemStatus() {
+        appState.refreshLoginItemStatus()
     }
 
     @objc private func deviceFilterChanged(_ sender: NSSearchField) {
@@ -425,6 +450,8 @@ final class RootView: NSView {
             return makeDeviceViews()
         case .profiles:
             return makeProfileViews()
+        case .settings:
+            return makeSettingsViews()
         }
     }
 
@@ -544,6 +571,55 @@ final class RootView: NSView {
         }
 
         appState.setManualDevice(selectedID, for: role)
+    }
+
+    private func makeSettingsViews() -> [NSView] {
+        [
+            makeSectionHeader(title: "Startup", count: 1),
+            makeLoginItemSettingsRow()
+        ]
+    }
+
+    private func makeLoginItemSettingsRow() -> NSView {
+        let title = makeLabel("Launch at Login", size: 13, weight: .medium, color: .labelColor)
+        let detail = makeLabel(snapshot.loginItem.status.detail, size: 12, weight: .regular, color: .secondaryLabelColor)
+        detail.maximumNumberOfLines = 2
+
+        let status = makeStatusLabel(snapshot.loginItem.status.title)
+        let toggle = NSButton(
+            checkboxWithTitle: "",
+            target: self,
+            action: #selector(loginItemToggleChanged(_:))
+        )
+        toggle.state = snapshot.loginItem.isEnabled ? .on : .off
+        toggle.isEnabled = snapshot.loginItem.canToggle
+        toggle.toolTip = "Launch MacPeripheralHub when you log in"
+
+        let refreshButton = makeActionButton(
+            title: "Refresh",
+            symbolName: "arrow.clockwise",
+            action: #selector(refreshLoginItemStatus)
+        )
+
+        let textStack = NSStackView(views: [title, detail])
+        textStack.orientation = .vertical
+        textStack.alignment = .leading
+        textStack.spacing = 3
+
+        let actions = NSStackView(views: [status, toggle, refreshButton])
+        actions.orientation = .horizontal
+        actions.alignment = .centerY
+        actions.spacing = 8
+
+        let row = NSStackView(views: [textStack, NSView(), actions])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        row.wantsLayer = true
+        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.cornerRadius = 6
+        return row
     }
 
     private func makeDeviceViews() -> [NSView] {

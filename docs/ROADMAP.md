@@ -358,12 +358,12 @@ Commit: `feat(app): hide Dock icon when window closes`
 
 ## 21. Login item prompt
 
-- [ ] На первом запуске показать предложение включить запуск при входе.
-- [ ] Использовать `SMAppService` на macOS 13+.
-- [ ] Сохранить, что prompt уже показывался.
-- [ ] Добавить настройку включения/выключения login item в приложении.
-- [ ] Обработать отказ пользователя без повторного навязчивого prompt.
-- [ ] Добавить понятный error state, если macOS не разрешила включить login item.
+- [x] На первом запуске показать предложение включить запуск при входе.
+- [x] Использовать `SMAppService` на macOS 13+.
+- [x] Сохранить, что prompt уже показывался.
+- [x] Добавить настройку включения/выключения login item в приложении.
+- [x] Обработать отказ пользователя без повторного навязчивого prompt.
+- [x] Добавить понятный error state, если macOS не разрешила включить login item.
 
 Commit: `feat(app): add launch at login support`
 
@@ -492,14 +492,14 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(system): enumerate USB devices and hubs`
 - [x] `feat(system): enumerate Bluetooth peripherals`
 - [x] `feat(core): aggregate peripheral inventory`
-- [ ] `feat(app): bridge C core into Swift app state`
-- [ ] `feat(ui): add main application window`
-- [ ] `feat(ui): add manual device controls`
-- [ ] `feat(ui): add categorized device inventory`
-- [ ] `feat(ui): add profile management`
-- [ ] `feat(menubar): add status item controls`
-- [ ] `feat(app): hide Dock icon when window closes`
-- [ ] `feat(app): add launch at login support`
+- [x] `feat(app): bridge C core into Swift app state`
+- [x] `feat(ui): add main application window`
+- [x] `feat(ui): add manual device controls`
+- [x] `feat(ui): add categorized device inventory`
+- [x] `feat(ui): add profile management`
+- [x] `feat(menubar): add status item controls`
+- [x] `feat(app): hide Dock icon when window closes`
+- [x] `feat(app): add launch at login support`
 - [ ] `feat(app): keep selected devices active in background`
 - [ ] `chore(app): add app resources and metadata`
 - [ ] `chore(app): configure permissions and privacy strings`

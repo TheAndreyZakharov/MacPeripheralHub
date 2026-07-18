@@ -283,6 +283,53 @@ struct ProfileViewModel: Identifiable, Equatable, Sendable {
     var updatedAtUnixMilliseconds: UInt64
 }
 
+enum LoginItemStatus: String, Equatable, Sendable {
+    case notRegistered
+    case enabled
+    case requiresApproval
+    case notFound
+
+    var title: String {
+        switch self {
+        case .notRegistered:
+            return "Off"
+        case .enabled:
+            return "On"
+        case .requiresApproval:
+            return "Needs Approval"
+        case .notFound:
+            return "Unavailable"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .notRegistered:
+            return "MacPeripheralHub will not start automatically when you log in."
+        case .enabled:
+            return "MacPeripheralHub will start automatically when you log in."
+        case .requiresApproval:
+            return "Allow MacPeripheralHub in System Settings to start at login."
+        case .notFound:
+            return "macOS could not find this app as a login item."
+        }
+    }
+}
+
+struct LoginItemViewModel: Equatable, Sendable {
+    let status: LoginItemStatus
+
+    static let unknown = LoginItemViewModel(status: .notRegistered)
+
+    var isEnabled: Bool {
+        status == .enabled
+    }
+
+    var canToggle: Bool {
+        status != .notFound
+    }
+}
+
 struct AppErrorViewModel: Identifiable, Equatable, Sendable {
     let id = UUID()
     let operation: String

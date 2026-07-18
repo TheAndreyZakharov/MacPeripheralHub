@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         showMainWindow(nil)
         appState.refreshAll()
+        showLaunchAtLoginPromptIfNeeded()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -100,6 +101,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func isActiveProfile(_ profile: ProfileViewModel) -> Bool {
         appState.activeSelection.mode == .profile && appState.activeSelection.profileID == profile.id
+    }
+
+    private func showLaunchAtLoginPromptIfNeeded() {
+        appState.refreshLoginItemStatus()
+        guard appState.shouldOfferLaunchAtLogin() else {
+            return
+        }
+
+        appState.markLaunchAtLoginPromptShown()
+
+        let alert = NSAlert()
+        alert.messageText = "Launch MacPeripheralHub at Login?"
+        alert.informativeText = "MacPeripheralHub can start automatically when you log in so it can keep your selected audio devices stable."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Enable")
+        alert.addButton(withTitle: "Not Now")
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            appState.setLaunchAtLoginEnabled(true)
+        }
     }
 
     private func configureMainMenu() {

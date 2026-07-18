@@ -7,18 +7,30 @@ final class AppState: ObservableObject {
     @Published private(set) var profiles: [ProfileViewModel] = []
     @Published private(set) var activeSelection: SelectionViewModel = .empty
     @Published private(set) var isRefreshingInventory = false
+    @Published private(set) var loginItem = LoginItemViewModel.unknown
     @Published var error: AppErrorViewModel?
 
     private let core: PeripheralCoreBridge
+    private let loginItems: LoginItemController
 
-    init(core: PeripheralCoreBridge = PeripheralCoreBridge()) {
+    init(
+        core: PeripheralCoreBridge = PeripheralCoreBridge(),
+        loginItems: LoginItemController = LoginItemController()
+    ) {
         self.core = core
+        self.loginItems = loginItems
+        refreshLoginItemStatus()
     }
 
     func refreshAll() {
         refreshInventory()
         reloadProfiles()
         reloadActiveSelection()
+        refreshLoginItemStatus()
+    }
+
+    func refreshLoginItemStatus() {
+        loginItem = loginItems.currentStatus()
     }
 
     func refreshInventory() {
@@ -146,6 +158,23 @@ final class AppState: ObservableObject {
             } catch {
                 presentError(error, operation: "Activate manual selection")
             }
+        }
+    }
+
+    func shouldOfferLaunchAtLogin() -> Bool {
+        !loginItems.hasShownPrompt && !loginItem.isEnabled
+    }
+
+    func markLaunchAtLoginPromptShown() {
+        loginItems.markPromptShown()
+    }
+
+    func setLaunchAtLoginEnabled(_ enabled: Bool) {
+        do {
+            loginItem = try loginItems.setEnabled(enabled)
+        } catch {
+            refreshLoginItemStatus()
+            presentError(error, operation: enabled ? "Enable launch at login" : "Disable launch at login")
         }
     }
 
