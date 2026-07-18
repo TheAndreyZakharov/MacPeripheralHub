@@ -5,10 +5,14 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let appState = AppState()
     private var mainWindowController: MainWindowController?
+    private var statusMenuController: StatusMenuController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         configureMainMenu()
+        statusMenuController = StatusMenuController(appState: appState) { [weak self] in
+            self?.showMainWindow(nil)
+        }
         showMainWindow(nil)
         appState.refreshAll()
     }

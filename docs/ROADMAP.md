@@ -331,17 +331,17 @@ Commit: `feat(ui): add profile management`
 
 ## 19. Menu bar
 
-- [ ] Добавить `NSStatusItem`.
-- [ ] Добавить иконку приложения в menu bar.
-- [ ] В menu bar показать компактный current state.
-- [ ] Добавить quick switch input device.
-- [ ] Добавить quick switch output device.
-- [ ] Добавить quick switch system output.
-- [ ] Добавить список профилей для быстрой активации.
-- [ ] Добавить `Open MacPeripheralHub`.
-- [ ] Добавить `Quit`.
-- [ ] Обновлять menu bar при подключении/отключении устройств.
-- [ ] Убедиться, что menu bar остается после закрытия окна.
+- [x] Добавить `NSStatusItem`.
+- [x] Добавить иконку приложения в menu bar.
+- [x] В menu bar показать компактный current state.
+- [x] Добавить quick switch input device.
+- [x] Добавить quick switch output device.
+- [x] Добавить quick switch system output.
+- [x] Добавить список профилей для быстрой активации.
+- [x] Добавить `Open MacPeripheralHub`.
+- [x] Добавить `Quit`.
+- [x] Обновлять menu bar при подключении/отключении устройств.
+- [x] Убедиться, что menu bar остается после закрытия окна.
 
 Commit: `feat(menubar): add status item controls`
 
