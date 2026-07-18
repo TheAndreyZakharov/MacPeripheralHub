@@ -257,14 +257,14 @@ Commit: `feat(core): aggregate peripheral inventory`
 
 ## 14. App state bridge Swift <-> C
 
-- [ ] Создать Swift wrapper над C-core.
-- [ ] Конвертировать C structs в Swift view models.
-- [ ] Изолировать unsafe pointers.
-- [ ] Добавить единый `AppState`.
-- [ ] Добавить async refresh inventory.
-- [ ] Добавить activation profile flow.
-- [ ] Добавить manual selection flow.
-- [ ] Добавить error presentation model.
+- [x] Создать Swift wrapper над C-core.
+- [x] Конвертировать C structs в Swift view models.
+- [x] Изолировать unsafe pointers.
+- [x] Добавить единый `AppState`.
+- [x] Добавить async refresh inventory.
+- [x] Добавить activation profile flow.
+- [x] Добавить manual selection flow.
+- [x] Добавить error presentation model.
 
 Commit: `feat(app): bridge C core into Swift app state`
 

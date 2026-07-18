@@ -1,7 +1,7 @@
 import AppKit
 
 final class MainWindowController: NSWindowController, NSWindowDelegate {
-    init() {
+    init(appState: AppState) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 980, height: 640),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -11,7 +11,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         window.title = "MacPeripheralHub"
         window.minSize = NSSize(width: 760, height: 480)
         window.center()
-        window.contentView = RootView()
+        window.contentView = RootView(appState: appState)
 
         super.init(window: window)
         window.delegate = self

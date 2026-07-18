@@ -1,13 +1,16 @@
 import AppKit
 
 @main
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let appState = AppState()
     private var mainWindowController: MainWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         configureMainMenu()
         showMainWindow(nil)
+        appState.refreshAll()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -16,7 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showMainWindow(_ sender: Any?) {
         if mainWindowController == nil {
-            mainWindowController = MainWindowController()
+            mainWindowController = MainWindowController(appState: appState)
         }
 
         mainWindowController?.showWindow(sender)

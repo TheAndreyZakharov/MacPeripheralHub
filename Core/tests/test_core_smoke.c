@@ -92,6 +92,40 @@ static void test_device_list(void) {
     mph_device_list_destroy(list);
 }
 
+static void test_swift_bridge_cstrings(void) {
+    mph_device_t device;
+    mph_device_init(&device);
+    assert(mph_device_id_from_parts(&device.id, "coreaudio.input", "studio-mic") ==
+           MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&device, "Studio Mic") == MPH_STATUS_OK);
+    assert(mph_device_set_vendor_name(&device, "Test Vendor") == MPH_STATUS_OK);
+    assert(mph_device_set_model_name(&device, "MV7") == MPH_STATUS_OK);
+    assert(mph_device_set_serial_number(&device, "SERIAL-1") == MPH_STATUS_OK);
+    assert(mph_device_set_camera_unique_id(&device, "camera-uid") == MPH_STATUS_OK);
+    assert(mph_device_set_bluetooth_address(&device, "aa:bb:cc:dd:ee:ff") == MPH_STATUS_OK);
+
+    assert(strcmp(mph_swift_device_id_cstr(&device), "coreaudio.input:studio-mic") == 0);
+    assert(strcmp(mph_swift_device_display_name_cstr(&device), "Studio Mic") == 0);
+    assert(strcmp(mph_swift_device_vendor_name_cstr(&device), "Test Vendor") == 0);
+    assert(strcmp(mph_swift_device_model_name_cstr(&device), "MV7") == 0);
+    assert(strcmp(mph_swift_device_serial_number_cstr(&device), "SERIAL-1") == 0);
+    assert(strcmp(mph_swift_device_camera_unique_id_cstr(&device), "camera-uid") == 0);
+    assert(strcmp(mph_swift_device_bluetooth_address_cstr(&device), "aa:bb:cc:dd:ee:ff") == 0);
+
+    mph_profile_t profile;
+    mph_profile_init(&profile);
+    assert(mph_profile_configure(&profile, "studio", "Studio") == MPH_STATUS_OK);
+    assert(mph_profile_set_role_device(&profile, MPH_DEVICE_ROLE_DEFAULT_INPUT, &device.id) ==
+           MPH_STATUS_OK);
+
+    assert(strcmp(mph_swift_profile_id_cstr(&profile), "studio") == 0);
+    assert(strcmp(mph_swift_profile_name_cstr(&profile), "Studio") == 0);
+    assert(strcmp(mph_swift_selection_profile_id_cstr(&profile.selection), "studio") == 0);
+    assert(strcmp(mph_swift_selection_role_device_id_cstr(&profile.selection,
+                                                          MPH_DEVICE_ROLE_DEFAULT_INPUT),
+                  "coreaudio.input:studio-mic") == 0);
+}
+
 static size_t split_fields(char *line, char **fields, size_t capacity) {
     size_t count = 0;
     char *field_start = line;
@@ -1357,6 +1391,7 @@ static void test_sqlite_profile_storage(void) {
 int main(void) {
     assert(strcmp(mph_core_version(), "1.0.0") == 0);
     test_device_list();
+    test_swift_bridge_cstrings();
     test_device_modeling_from_fixture();
     test_device_normalization_and_matching();
     test_core_audio_mapper();
