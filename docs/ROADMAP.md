@@ -347,12 +347,12 @@ Commit: `feat(menubar): add status item controls`
 
 ## 20. Закрытие окна и Dock behavior
 
-- [ ] При нажатии красной кнопки закрывать/прятать окно.
-- [ ] После закрытия окна переводить app activation policy в accessory, чтобы приложение не мешало в Dock.
-- [ ] При открытии окна из menu bar возвращать normal activation policy.
-- [ ] Убедиться, что приложение продолжает watchers/reconciliation в фоне.
-- [ ] Реализовать Dock menu с быстрыми профилями, когда приложение видно в Dock.
-- [ ] Не обещать Dock menu после скрытия из Dock: в этом состоянии быстрый доступ идет через menu bar.
+- [x] При нажатии красной кнопки закрывать/прятать окно.
+- [x] После закрытия окна переводить app activation policy в accessory, чтобы приложение не мешало в Dock.
+- [x] При открытии окна из menu bar возвращать normal activation policy.
+- [x] Убедиться, что приложение продолжает watchers/reconciliation в фоне.
+- [x] Реализовать Dock menu с быстрыми профилями, когда приложение видно в Dock.
+- [x] Не обещать Dock menu после скрытия из Dock: в этом состоянии быстрый доступ идет через menu bar.
 
 Commit: `feat(app): hide Dock icon when window closes`
 

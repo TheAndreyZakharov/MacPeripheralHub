@@ -2,8 +2,10 @@ import AppKit
 
 final class MainWindowController: NSWindowController, NSWindowDelegate {
     private static let frameAutosaveName = "MacPeripheralHubMainWindow"
+    private let onWindowHidden: () -> Void
 
-    init(appState: AppState) {
+    init(appState: AppState, onWindowHidden: @escaping () -> Void) {
+        self.onWindowHidden = onWindowHidden
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1080, height: 700),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -35,5 +37,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     func windowDidResize(_ notification: Notification) {
         window?.saveFrame(usingName: Self.frameAutosaveName)
+    }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        sender.saveFrame(usingName: Self.frameAutosaveName)
+        sender.orderOut(nil)
+        onWindowHidden()
+        return false
     }
 }
