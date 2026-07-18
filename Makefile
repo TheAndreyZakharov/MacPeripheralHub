@@ -1,8 +1,17 @@
-.PHONY: all build-app build-release test-core test-all clean
+.PHONY: all build-app build-release core-lib test-core test-all clean
 
 PROJECT := MacPeripheralHub.xcodeproj
 SCHEME := MacPeripheralHub
 DERIVED_DATA := build/DerivedData
+CORE_BUILD_DIR := build/core
+CORE_LIB := $(CORE_BUILD_DIR)/libPeripheralCore.a
+CORE_TEST := $(CORE_BUILD_DIR)/test_core_smoke
+CORE_HEADERS := $(wildcard Core/include/*.h)
+CORE_SOURCES := $(wildcard Core/src/*.c)
+CORE_OBJECTS := $(patsubst Core/src/%.c,$(CORE_BUILD_DIR)/%.o,$(CORE_SOURCES))
+CORE_TEST_SOURCES := $(wildcard Core/tests/*.c)
+CC := clang
+CFLAGS := -std=c17 -Wall -Wextra -Werror -pedantic -I Core/include
 
 all: build-app test-core
 
@@ -12,10 +21,22 @@ build-app:
 build-release:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration Release -derivedDataPath $(DERIVED_DATA) build
 
-test-core:
-	@printf "Core test target is ready; C tests will be added in roadmap item 2.\\n"
+core-lib: $(CORE_LIB)
+
+$(CORE_LIB): $(CORE_OBJECTS)
+	mkdir -p $(CORE_BUILD_DIR)
+	libtool -static -o $@ $^
+
+$(CORE_BUILD_DIR)/%.o: Core/src/%.c $(CORE_HEADERS)
+	mkdir -p $(CORE_BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+test-core: $(CORE_LIB) $(CORE_TEST_SOURCES)
+	$(CC) $(CFLAGS) $(CORE_TEST_SOURCES) $(CORE_LIB) -o $(CORE_TEST)
+	$(CORE_TEST)
 
 test-all: build-app test-core
 
 clean:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -derivedDataPath $(DERIVED_DATA) clean
+	rm -rf $(CORE_BUILD_DIR)

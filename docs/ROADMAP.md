@@ -46,10 +46,10 @@ Commit: `chore: scaffold macOS app and C core layout`
 
 ## 2. Настройка C-core как главной части проекта
 
-- [ ] Создать статическую библиотеку `PeripheralCore`.
-- [ ] Подключить C-library к Swift target через bridging/module map.
-- [ ] Добавить публичные headers в `Core/include`.
-- [ ] Добавить базовые C-модули:
+- [x] Создать статическую библиотеку `PeripheralCore`.
+- [x] Подключить C-library к Swift target через bridging/module map.
+- [x] Добавить публичные headers в `Core/include`.
+- [x] Добавить базовые C-модули:
   - `mph_device`
   - `mph_device_id`
   - `mph_device_list`
@@ -60,10 +60,10 @@ Commit: `chore: scaffold macOS app and C core layout`
   - `mph_result`
   - `mph_log`
   - `mph_time`
-- [ ] Добавить единый style ошибок: `mph_status_t`, error code, optional message buffer.
-- [ ] Добавить memory ownership rules в headers.
-- [ ] Добавить smoke-тесты C-core.
-- [ ] Подключить `make test-core`.
+- [x] Добавить единый style ошибок: `mph_status_t`, error code, optional message buffer.
+- [x] Добавить memory ownership rules в headers.
+- [x] Добавить smoke-тесты C-core.
+- [x] Подключить `make test-core`.
 
 Commit: `feat(core): add C foundation library`
 
@@ -440,7 +440,7 @@ Commit: `test(app): verify macOS device switching flows`
 - [x] Добавить `scripts/build_release.sh`.
 - [x] Добавить `scripts/run_app.sh`.
 - [x] Добавить `scripts/stop_app.sh`.
-- [ ] Добавить `scripts/test_core.sh`.
+- [x] Добавить `scripts/test_core.sh`.
 - [ ] Добавить `scripts/test_all.sh`.
 - [ ] Добавить `scripts/package_app.sh`, если нужен локальный `.app` artifact.
 - [ ] Сделать scripts понятными и без скрытых глобальных зависимостей.

@@ -10,7 +10,29 @@
 		1A2B3C4D5E6F708190A0B0C1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B001 /* AppDelegate.swift */; };
 		1A2B3C4D5E6F708190A0B0C2 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B002 /* MainWindowController.swift */; };
 		1A2B3C4D5E6F708190A0B0C3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708190A0B003 /* RootView.swift */; };
+		2B3C4D5E6F708190A0B0C001 /* libPeripheralCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */; };
+		2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S011 /* mph_core.c */; };
+		2B3C4D5E6F708190A0B0C012 /* mph_device.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S012 /* mph_device.c */; };
+		2B3C4D5E6F708190A0B0C013 /* mph_device_id.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */; };
+		2B3C4D5E6F708190A0B0C014 /* mph_device_list.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */; };
+		2B3C4D5E6F708190A0B0C015 /* mph_log.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S015 /* mph_log.c */; };
+		2B3C4D5E6F708190A0B0C016 /* mph_profile.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S016 /* mph_profile.c */; };
+		2B3C4D5E6F708190A0B0C017 /* mph_profile_store.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S017 /* mph_profile_store.c */; };
+		2B3C4D5E6F708190A0B0C018 /* mph_reconcile.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S018 /* mph_reconcile.c */; };
+		2B3C4D5E6F708190A0B0C019 /* mph_result.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S019 /* mph_result.c */; };
+		2B3C4D5E6F708190A0B0C020 /* mph_selection.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S020 /* mph_selection.c */; };
+		2B3C4D5E6F708190A0B0C021 /* mph_time.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708190A0B0S021 /* mph_time.c */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2B3C4D5E6F708190A0B0P001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A2B3C4D5E6F708190A0B401 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2B3C4D5E6F708190A0B0301;
+			remoteInfo = PeripheralCore;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1A2B3C4D5E6F708190A0B001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -18,10 +40,43 @@
 		1A2B3C4D5E6F708190A0B003 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708190A0B005 /* MacPeripheralHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacPeripheralHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPeripheralCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PeripheralCore.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H002 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H003 /* mph_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_core.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H004 /* mph_device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H005 /* mph_device_id.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device_id.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H006 /* mph_device_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_device_list.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H007 /* mph_log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_log.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H008 /* mph_profile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_profile.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H009 /* mph_profile_store.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_profile_store.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H010 /* mph_reconcile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_reconcile.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H011 /* mph_result.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_result.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H012 /* mph_selection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_selection.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0H013 /* mph_time.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mph_time.h; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S011 /* mph_core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_core.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S012 /* mph_device.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device_id.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_device_list.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S015 /* mph_log.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_log.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S016 /* mph_profile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_profile.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S017 /* mph_profile_store.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_profile_store.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S018 /* mph_reconcile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_reconcile.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S019 /* mph_result.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_result.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S020 /* mph_selection.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_selection.c; sourceTree = "<group>"; };
+		2B3C4D5E6F708190A0B0S021 /* mph_time.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mph_time.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1A2B3C4D5E6F708190A0B101 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B3C4D5E6F708190A0B0C001 /* libPeripheralCore.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2B3C4D5E6F708190A0B0101 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -35,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				1A2B3C4D5E6F708190A0B202 /* MacPeripheralHub */,
+				2B3C4D5E6F708190A0B0202 /* Core */,
 				1A2B3C4D5E6F708190A0B203 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				1A2B3C4D5E6F708190A0B005 /* MacPeripheralHub.app */,
+				2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,6 +139,53 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		2B3C4D5E6F708190A0B0202 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				2B3C4D5E6F708190A0B0203 /* include */,
+				2B3C4D5E6F708190A0B0204 /* src */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		2B3C4D5E6F708190A0B0203 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				2B3C4D5E6F708190A0B0H001 /* PeripheralCore.h */,
+				2B3C4D5E6F708190A0B0H002 /* module.modulemap */,
+				2B3C4D5E6F708190A0B0H003 /* mph_core.h */,
+				2B3C4D5E6F708190A0B0H004 /* mph_device.h */,
+				2B3C4D5E6F708190A0B0H005 /* mph_device_id.h */,
+				2B3C4D5E6F708190A0B0H006 /* mph_device_list.h */,
+				2B3C4D5E6F708190A0B0H007 /* mph_log.h */,
+				2B3C4D5E6F708190A0B0H008 /* mph_profile.h */,
+				2B3C4D5E6F708190A0B0H009 /* mph_profile_store.h */,
+				2B3C4D5E6F708190A0B0H010 /* mph_reconcile.h */,
+				2B3C4D5E6F708190A0B0H011 /* mph_result.h */,
+				2B3C4D5E6F708190A0B0H012 /* mph_selection.h */,
+				2B3C4D5E6F708190A0B0H013 /* mph_time.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		2B3C4D5E6F708190A0B0204 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2B3C4D5E6F708190A0B0S011 /* mph_core.c */,
+				2B3C4D5E6F708190A0B0S012 /* mph_device.c */,
+				2B3C4D5E6F708190A0B0S013 /* mph_device_id.c */,
+				2B3C4D5E6F708190A0B0S014 /* mph_device_list.c */,
+				2B3C4D5E6F708190A0B0S015 /* mph_log.c */,
+				2B3C4D5E6F708190A0B0S016 /* mph_profile.c */,
+				2B3C4D5E6F708190A0B0S017 /* mph_profile_store.c */,
+				2B3C4D5E6F708190A0B0S018 /* mph_reconcile.c */,
+				2B3C4D5E6F708190A0B0S019 /* mph_result.c */,
+				2B3C4D5E6F708190A0B0S020 /* mph_selection.c */,
+				2B3C4D5E6F708190A0B0S021 /* mph_time.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -96,11 +200,28 @@
 			buildRules = (
 			);
 			dependencies = (
+				2B3C4D5E6F708190A0B0D001 /* PBXTargetDependency */,
 			);
 			name = MacPeripheralHub;
 			productName = MacPeripheralHub;
 			productReference = 1A2B3C4D5E6F708190A0B005 /* MacPeripheralHub.app */;
 			productType = "com.apple.product-type.application";
+		};
+		2B3C4D5E6F708190A0B0301 /* PeripheralCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B3C4D5E6F708190A0B0601 /* Build configuration list for PBXNativeTarget "PeripheralCore" */;
+			buildPhases = (
+				2B3C4D5E6F708190A0B0102 /* Sources */,
+				2B3C4D5E6F708190A0B0101 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PeripheralCore;
+			productName = PeripheralCore;
+			productReference = 2B3C4D5E6F708190A0B0F001 /* libPeripheralCore.a */;
+			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
 
@@ -113,6 +234,9 @@
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					1A2B3C4D5E6F708190A0B301 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					2B3C4D5E6F708190A0B0301 = {
 						CreatedOnToolsVersion = 26.6;
 					};
 				};
@@ -131,6 +255,7 @@
 			projectRoot = "";
 			targets = (
 				1A2B3C4D5E6F708190A0B301 /* MacPeripheralHub */,
+				2B3C4D5E6F708190A0B0301 /* PeripheralCore */,
 			);
 		};
 /* End PBXProject section */
@@ -156,7 +281,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2B3C4D5E6F708190A0B0102 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B3C4D5E6F708190A0B0C011 /* mph_core.c in Sources */,
+				2B3C4D5E6F708190A0B0C012 /* mph_device.c in Sources */,
+				2B3C4D5E6F708190A0B0C013 /* mph_device_id.c in Sources */,
+				2B3C4D5E6F708190A0B0C014 /* mph_device_list.c in Sources */,
+				2B3C4D5E6F708190A0B0C015 /* mph_log.c in Sources */,
+				2B3C4D5E6F708190A0B0C016 /* mph_profile.c in Sources */,
+				2B3C4D5E6F708190A0B0C017 /* mph_profile_store.c in Sources */,
+				2B3C4D5E6F708190A0B0C018 /* mph_reconcile.c in Sources */,
+				2B3C4D5E6F708190A0B0C019 /* mph_result.c in Sources */,
+				2B3C4D5E6F708190A0B0C020 /* mph_selection.c in Sources */,
+				2B3C4D5E6F708190A0B0C021 /* mph_time.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2B3C4D5E6F708190A0B0D001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2B3C4D5E6F708190A0B0301 /* PeripheralCore */;
+			targetProxy = 2B3C4D5E6F708190A0B0P001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1A2B3C4D5E6F708190A0B701 /* Debug */ = {
@@ -282,6 +433,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Core/include";
 				INFOPLIST_FILE = MacPeripheralHub/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -292,6 +444,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.theandreyzakharov.MacPeripheralHub;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Core/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -305,6 +458,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Core/include";
 				INFOPLIST_FILE = MacPeripheralHub/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -315,7 +469,72 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.theandreyzakharov.MacPeripheralHub;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Core/include";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		2B3C4D5E6F708190A0B0801 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = NO;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_C_LANGUAGE_STANDARD = c17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Core/include";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_NAME = PeripheralCore;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		2B3C4D5E6F708190A0B0802 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = NO;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = c17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Core/include";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_NAME = PeripheralCore;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -336,6 +555,15 @@
 			buildConfigurations = (
 				1A2B3C4D5E6F708190A0B801 /* Debug */,
 				1A2B3C4D5E6F708190A0B802 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2B3C4D5E6F708190A0B0601 /* Build configuration list for PBXNativeTarget "PeripheralCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B3C4D5E6F708190A0B0801 /* Debug */,
+				2B3C4D5E6F708190A0B0802 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

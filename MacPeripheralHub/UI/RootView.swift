@@ -1,8 +1,9 @@
 import AppKit
+import PeripheralCore
 
 final class RootView: NSView {
     private let titleLabel = NSTextField(labelWithString: "MacPeripheralHub")
-    private let versionLabel = NSTextField(labelWithString: "Version 1.0.0")
+    private let versionLabel = NSTextField(labelWithString: "Core \(String(cString: mph_core_version()))")
     private let statusLabel = NSTextField(labelWithString: "Application shell is ready.")
 
     override init(frame frameRect: NSRect) {

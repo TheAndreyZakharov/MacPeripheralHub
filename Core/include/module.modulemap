@@ -1,0 +1,4 @@
+module PeripheralCore {
+    umbrella header "PeripheralCore.h"
+    export *
+}
