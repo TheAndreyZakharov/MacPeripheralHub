@@ -1,4 +1,4 @@
-.PHONY: all build-app build-release core-lib test-core test-all clean
+.PHONY: all build-app build-release core-lib test-core test-all package-app clean
 
 PROJECT := MacPeripheralHub.xcodeproj
 SCHEME := MacPeripheralHub
@@ -42,7 +42,11 @@ test-core: $(CORE_LIB) $(CORE_TEST_SOURCES)
 	$(CC) $(CFLAGS) $(CORE_TEST_SOURCES) $(CORE_LIB) $(CORE_LDFLAGS) -o $(CORE_TEST)
 	$(CORE_TEST)
 
-test-all: build-app test-core
+test-all:
+	./scripts/test_all.sh
+
+package-app:
+	./scripts/package_app.sh
 
 clean:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -derivedDataPath $(DERIVED_DATA) clean

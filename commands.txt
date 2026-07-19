@@ -1,3 +1,7 @@
 cd /Users/andrey/Documents/projects/MacPeripheralHub
-source venv/bin/activate
-deactivate
+
+# Собрать локальное macOS-приложение со всеми проверками:
+scripts/package_app.sh
+
+# Готовый app после сборки:
+dist/MacPeripheralHub.app

@@ -443,9 +443,9 @@ Commit: `test(app): verify macOS device switching flows`
 - [x] Добавить `scripts/run_app.sh`.
 - [x] Добавить `scripts/stop_app.sh`.
 - [x] Добавить `scripts/test_core.sh`.
-- [ ] Добавить `scripts/test_all.sh`.
-- [ ] Добавить `scripts/package_app.sh`, если нужен локальный `.app` artifact.
-- [ ] Сделать scripts понятными и без скрытых глобальных зависимостей.
+- [x] Добавить `scripts/test_all.sh`.
+- [x] Добавить `scripts/package_app.sh`, если нужен локальный `.app` artifact.
+- [x] Сделать scripts понятными и без скрытых глобальных зависимостей.
 
 Commit: `chore(scripts): add build and test commands`
 
@@ -507,6 +507,6 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `chore(app): configure permissions and privacy strings`
 - [x] `test(core): cover profiles inventory and reconciliation`
 - [ ] `test(app): verify macOS device switching flows`
-- [ ] `chore(scripts): add build and test commands`
+- [x] `chore(scripts): add build and test commands`
 - [ ] `docs: document MacPeripheralHub usage and architecture`
 - [ ] `release: prepare MacPeripheralHub 1.0.0`
