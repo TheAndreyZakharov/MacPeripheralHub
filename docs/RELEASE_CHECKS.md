@@ -15,8 +15,8 @@ This document records the final release-readiness pass for the local `1.0.0` bui
 | C-core tests | Passed | `build/core/test_core_smoke` printed `PeripheralCore smoke tests passed`. |
 | Release build | Passed | The package command completed the Release app build with `** BUILD SUCCEEDED **`. |
 | Release app artifact | Passed | `dist/MacPeripheralHub.app` was created. |
-| Release checksum manifest | Passed | `dist/MacPeripheralHub.app.sha256` was created. |
-| Checksum verification | Passed | `shasum -a 256 -c MacPeripheralHub.app.sha256` returned `OK` for all bundle files. |
+| Release checksum file | Passed | `dist/MacPeripheralHub.app.zip.sha256` was created. |
+| Checksum verification | Passed | `shasum -a 256 -c MacPeripheralHub.app.zip.sha256` returned `OK` for the release archive. |
 | Local code signature | Passed | `codesign --verify --deep --strict --verbose=2 dist/MacPeripheralHub.app` reported the app as valid on disk. |
 
 `xcodebuild` prints CoreSimulator-related warnings in this sandboxed environment, but the macOS application target builds successfully.

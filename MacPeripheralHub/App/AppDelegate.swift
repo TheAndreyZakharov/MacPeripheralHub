@@ -1,6 +1,5 @@
 import AppKit
 
-@main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let appState = AppState()
@@ -10,16 +9,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var nextDockProfileTag = 4000
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        writeLaunchDiagnostic("applicationDidFinishLaunching")
         configureApplicationIcon()
         NSApp.setActivationPolicy(.regular)
         configureMainMenu()
         statusMenuController = StatusMenuController(appState: appState) { [weak self] in
             self?.showMainWindow(nil)
         }
+        writeLaunchDiagnostic("statusItemConfigured")
         showMainWindow(nil)
+        writeLaunchDiagnostic("mainWindowRequested")
         appState.startBackgroundServices()
         appState.refreshAll()
-        showLaunchAtLoginPromptIfNeeded()
+        scheduleStartupUIFailsafe()
+        scheduleLaunchAtLoginPrompt()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -88,9 +91,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        mainWindowController?.showWindow(sender)
-        mainWindowController?.window?.makeKeyAndOrderFront(sender)
-        NSApp.activate(ignoringOtherApps: true)
+        mainWindowController?.showAndActivate(sender)
+        writeLaunchDiagnostic("mainWindowShown visible=\(mainWindowController?.window?.isVisible == true)")
+        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
     }
 
     @objc private func activateDockProfile(_ sender: NSMenuItem) {
@@ -125,6 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func hideApplicationFromDock() {
         NSApp.setActivationPolicy(.accessory)
+        writeLaunchDiagnostic("dockHiddenAfterWindowClose")
     }
 
     private func isActiveProfile(_ profile: ProfileViewModel) -> Bool {
@@ -134,10 +138,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showLaunchAtLoginPromptIfNeeded() {
         appState.refreshLoginItemStatus()
         guard appState.shouldOfferLaunchAtLogin() else {
+            writeLaunchDiagnostic("loginItemPromptSkipped")
             return
         }
 
         appState.markLaunchAtLoginPromptShown()
+        writeLaunchDiagnostic("loginItemPromptShown")
 
         let alert = NSAlert()
         alert.messageText = "Launch MacPeripheralHub at Login?"
@@ -146,8 +152,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.addButton(withTitle: "Enable")
         alert.addButton(withTitle: "Not Now")
 
-        if alert.runModal() == .alertFirstButtonReturn {
+        if let window = mainWindowController?.window {
+            alert.beginSheetModal(for: window) { [weak self] response in
+                guard response == .alertFirstButtonReturn else {
+                    return
+                }
+
+                self?.appState.setLaunchAtLoginEnabled(true)
+            }
+        } else if alert.runModal() == .alertFirstButtonReturn {
             appState.setLaunchAtLoginEnabled(true)
+        }
+    }
+
+    private func scheduleStartupUIFailsafe() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+            guard let self else {
+                return
+            }
+
+            if self.statusMenuController == nil {
+                self.statusMenuController = StatusMenuController(appState: self.appState) { [weak self] in
+                    self?.showMainWindow(nil)
+                }
+                self.writeLaunchDiagnostic("statusItemRecreatedByFailsafe")
+            }
+
+            if self.mainWindowController?.window?.isVisible != true {
+                self.writeLaunchDiagnostic("mainWindowMissingBeforeFailsafe")
+                self.showMainWindow(nil)
+            } else {
+                self.writeLaunchDiagnostic("mainWindowVisibleAtFailsafe")
+            }
+        }
+    }
+
+    private func scheduleLaunchAtLoginPrompt() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.25) { [weak self] in
+            self?.showLaunchAtLoginPromptIfNeeded()
         }
     }
 
@@ -201,5 +243,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.windowsMenu = windowMenu
 
         NSApp.mainMenu = mainMenu
+    }
+
+    private func writeLaunchDiagnostic(_ message: String) {
+        let fileManager = FileManager.default
+        guard let supportDirectory = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return
+        }
+
+        let appDirectory = supportDirectory.appendingPathComponent("MacPeripheralHub", isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true)
+            let logURL = appDirectory.appendingPathComponent("launch-diagnostics.log")
+            let line = "\(Date()) \(message)\n"
+            if let data = line.data(using: .utf8) {
+                if fileManager.fileExists(atPath: logURL.path) {
+                    let handle = try FileHandle(forWritingTo: logURL)
+                    try handle.seekToEnd()
+                    try handle.write(contentsOf: data)
+                    try handle.close()
+                } else {
+                    try data.write(to: logURL)
+                }
+            }
+        } catch {
+            NSLog("MacPeripheralHub launch diagnostic write failed: \(error.localizedDescription)")
+        }
     }
 }

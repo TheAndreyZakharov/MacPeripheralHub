@@ -31,6 +31,8 @@ final class StatusMenuController: NSObject {
         }
 
         button.image = makeMenuBarIcon()
+        button.imagePosition = .imageLeading
+        button.title = "MPH"
         button.toolTip = "MacPeripheralHub"
     }
 
@@ -104,8 +106,8 @@ final class StatusMenuController: NSObject {
     }
 
     private func makeMenuBarIcon() -> NSImage? {
-        let image = NSImage(named: "MenuBarIcon") ??
-            NSImage(systemSymbolName: "dot.radiowaves.left.and.right", accessibilityDescription: "MacPeripheralHub")
+        let image = NSImage(systemSymbolName: "dot.radiowaves.left.and.right", accessibilityDescription: "MacPeripheralHub") ??
+            NSImage(named: "MenuBarIcon")
         image?.isTemplate = true
         return image
     }

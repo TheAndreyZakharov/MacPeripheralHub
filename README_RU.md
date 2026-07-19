@@ -76,16 +76,18 @@ MacPeripheralHub хранит либо активный профиль, либо
 
 Ожидаемые release assets:
 
-    MacPeripheralHub.app
-    MacPeripheralHub.app.sha256
+    MacPeripheralHub.app.zip
+    MacPeripheralHub.app.zip.sha256
 
-Если GitHub или браузер отдает приложение как архив, сначала распакуйте его.
+Положите `MacPeripheralHub.app.zip` и `MacPeripheralHub.app.zip.sha256` в одну папку.
 
-Положите `MacPeripheralHub.app` и `MacPeripheralHub.app.sha256` в одну папку.
+Проверьте архив:
 
-Проверьте app bundle:
+    shasum -a 256 -c MacPeripheralHub.app.zip.sha256
 
-    shasum -a 256 -c MacPeripheralHub.app.sha256
+Распакуйте архив:
+
+    unzip MacPeripheralHub.app.zip
 
 При необходимости переместите приложение в `Applications`:
 
@@ -150,9 +152,10 @@ MacPeripheralHub хранит preferred camera в профилях и показ
 Скрипт запускает все локальные проверки и затем записывает:
 
     dist/MacPeripheralHub.app
-    dist/MacPeripheralHub.app.sha256
+    dist/MacPeripheralHub.app.zip
+    dist/MacPeripheralHub.app.zip.sha256
 
-Checksum-файл является SHA-256 manifest для regular files внутри сгенерированного `.app` bundle.
+Checksum-файл проверяет release zip archive.
 
 Та же упаковка доступна через Make:
 

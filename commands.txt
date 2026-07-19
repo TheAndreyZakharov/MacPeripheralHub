@@ -6,9 +6,12 @@ scripts/package_app.sh
 # Готовый app после сборки:
 dist/MacPeripheralHub.app
 
-# Файл контрольных сумм для проверки bundle:
-dist/MacPeripheralHub.app.sha256
+# Архив для GitHub Release:
+dist/MacPeripheralHub.app.zip
 
-# Проверить app по checksum manifest:
+# Файл контрольной суммы для архива:
+dist/MacPeripheralHub.app.zip.sha256
+
+# Проверить release archive по checksum:
 cd dist
-shasum -a 256 -c MacPeripheralHub.app.sha256
+shasum -a 256 -c MacPeripheralHub.app.zip.sha256

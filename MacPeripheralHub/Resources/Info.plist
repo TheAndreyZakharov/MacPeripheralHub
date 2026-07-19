@@ -28,6 +28,10 @@
 	<string>public.app-category.utilities</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>MacPeripheralHub uses Bluetooth metadata only to list connected peripherals and keep selected device profiles stable. It does not track location or transmit Bluetooth data.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>MacPeripheralHub uses Bluetooth metadata only to list connected peripherals and keep selected device profiles stable. It does not track location or transmit Bluetooth data.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MacPeripheralHub uses camera access only to list connected cameras and store profile preferences. It does not capture, record, or transmit video.</string>
 	<key>NSCameraUseContinuityCameraDeviceType</key>

@@ -445,7 +445,8 @@ Commit: `test(app): verify macOS device switching flows`
 - [x] Добавить `scripts/test_core.sh`.
 - [x] Добавить `scripts/test_all.sh`.
 - [x] Добавить `scripts/package_app.sh`, если нужен локальный `.app` artifact.
-- [x] Создавать `dist/MacPeripheralHub.app.sha256` рядом с `.app` для GitHub Release.
+- [x] Оставлять локальный artifact `dist/MacPeripheralHub.app` для прямой проверки на машине разработки.
+- [x] Создавать `dist/MacPeripheralHub.app.zip` и `dist/MacPeripheralHub.app.zip.sha256` для корректной публикации в GitHub Release.
 - [x] Сделать scripts понятными и без скрытых глобальных зависимостей.
 
 Commit: `chore(scripts): add build and test commands`
@@ -480,7 +481,7 @@ Commit: `docs: document MacPeripheralHub usage and architecture`
 - [x] Проверить, что release build собирается.
 - [x] Проверить чистоту `git status`.
 - [x] Проверить release artifact `dist/MacPeripheralHub.app`.
-- [x] Проверить checksum manifest `dist/MacPeripheralHub.app.sha256`.
+- [x] Проверить checksum manifest `dist/MacPeripheralHub.app.zip.sha256`.
 - [x] Записать финальный release evidence в `docs/RELEASE_CHECKS.md`.
 
 Commit: `release: prepare MacPeripheralHub 1.0.0`

@@ -76,16 +76,18 @@ The release should include both the application bundle and its checksum file.
 
 Expected release assets:
 
-    MacPeripheralHub.app
-    MacPeripheralHub.app.sha256
+    MacPeripheralHub.app.zip
+    MacPeripheralHub.app.zip.sha256
 
-If the application is provided as an archive by GitHub or by the browser, extract it first.
+Place `MacPeripheralHub.app.zip` and `MacPeripheralHub.app.zip.sha256` in the same folder.
 
-Place `MacPeripheralHub.app` and `MacPeripheralHub.app.sha256` in the same folder.
+Verify the archive:
 
-Verify the app bundle:
+    shasum -a 256 -c MacPeripheralHub.app.zip.sha256
 
-    shasum -a 256 -c MacPeripheralHub.app.sha256
+Extract the archive:
+
+    unzip MacPeripheralHub.app.zip
 
 Move the application to `Applications` if desired:
 
@@ -150,9 +152,10 @@ Build, test, and create a local release app bundle:
 The script runs the full local checks and then writes:
 
     dist/MacPeripheralHub.app
-    dist/MacPeripheralHub.app.sha256
+    dist/MacPeripheralHub.app.zip
+    dist/MacPeripheralHub.app.zip.sha256
 
-The checksum file is a SHA-256 manifest for the regular files inside the generated `.app` bundle.
+The checksum file verifies the release zip archive.
 
 The same packaging step is available through Make:
 

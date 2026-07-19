@@ -18,7 +18,7 @@ This file records the macOS integration checks for the 1.0.0 development pass. H
 | CoreAudio live adapter smoke | Confirmed | `make test-core` completed and exercised CoreAudio enumeration/default role reads plus missing-device handling. |
 | Display/HID/USB/Bluetooth/camera live adapter smoke | Confirmed | `make test-core` completed live smoke paths. Camera permission was denied on this Mac and enumeration correctly skipped cameras without failing the full test. |
 | Quit through app termination path | Confirmed | `scripts/stop_app.sh` sent the app quit command; a following `pgrep -x MacPeripheralHub` returned no process. |
-| Final packaged app checksum | Confirmed | `shasum -a 256 -c MacPeripheralHub.app.sha256` returned `OK` for every file in `dist/MacPeripheralHub.app`. |
+| Final packaged app checksum | Confirmed | `shasum -a 256 -c MacPeripheralHub.app.zip.sha256` returned `OK` for the release archive. |
 | Final bundle signature check | Confirmed | `codesign --verify --deep --strict --verbose=2 dist/MacPeripheralHub.app` reported the app as valid on disk. |
 
 `xcodebuild` emitted CoreSimulator and local sandbox warnings in this environment, but the macOS app build itself succeeded.
