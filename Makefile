@@ -21,7 +21,7 @@ all: build-app test-core
 build-app:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration Debug -derivedDataPath $(DERIVED_DATA) build
 
-build-release:
+build-release: test-core
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -configuration Release -derivedDataPath $(DERIVED_DATA) build
 
 core-lib: $(CORE_LIB)

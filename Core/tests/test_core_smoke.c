@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +27,23 @@ typedef struct {
     mph_status_t last_status;
     size_t last_plan_action_count;
 } watcher_test_context_t;
+
+static int sqlite_scalar_int(const char *path, const char *sql) {
+    sqlite3 *connection = NULL;
+    assert(sqlite3_open_v2(path, &connection, SQLITE_OPEN_READONLY, NULL) == SQLITE_OK);
+
+    sqlite3_stmt *statement = NULL;
+    assert(sqlite3_prepare_v2(connection, sql, -1, &statement, NULL) == SQLITE_OK);
+    int value = 0;
+    if (sqlite3_step(statement) == SQLITE_ROW) {
+        value = sqlite3_column_int(statement, 0);
+    } else {
+        assert(false);
+    }
+    sqlite3_finalize(statement);
+    sqlite3_close(connection);
+    return value;
+}
 
 static void watcher_test_deadline(struct timespec *out_time) {
     struct timeval now;
@@ -252,6 +270,34 @@ static void test_device_normalization_and_matching(void) {
     generic_known.category = MPH_DEVICE_CATEGORY_USB;
     generic_candidate.category = MPH_DEVICE_CATEGORY_USB;
     assert(!mph_device_is_probable_match(&generic_known, &generic_candidate));
+}
+
+static void test_serialization_names_roundtrip(void) {
+    for (int category = MPH_DEVICE_CATEGORY_DISPLAY; category <= MPH_DEVICE_CATEGORY_UNKNOWN;
+         category += 1) {
+        const char *name = mph_device_category_name((mph_device_category_t)category);
+        assert(mph_device_category_from_name(name) == (mph_device_category_t)category);
+    }
+    assert(mph_device_category_from_name("definitely_not_a_category") ==
+           MPH_DEVICE_CATEGORY_UNKNOWN);
+
+    for (int transport = MPH_DEVICE_TRANSPORT_BUILT_IN;
+         transport <= MPH_DEVICE_TRANSPORT_UNKNOWN; transport += 1) {
+        const char *name = mph_device_transport_name((mph_device_transport_t)transport);
+        assert(mph_device_transport_from_name(name) == (mph_device_transport_t)transport);
+    }
+    assert(mph_device_transport_from_name("definitely_not_a_transport") ==
+           MPH_DEVICE_TRANSPORT_UNKNOWN);
+
+    assert(strcmp(mph_device_role_name(MPH_DEVICE_ROLE_DEFAULT_INPUT), "default_input") == 0);
+    assert(strcmp(mph_device_role_name(MPH_DEVICE_ROLE_DEFAULT_OUTPUT), "default_output") == 0);
+    assert(strcmp(mph_device_role_name(MPH_DEVICE_ROLE_SYSTEM_OUTPUT), "system_output") == 0);
+    assert(strcmp(mph_device_role_name(MPH_DEVICE_ROLE_PREFERRED_CAMERA), "preferred_camera") ==
+           0);
+    assert(strcmp(mph_reconcile_action_name(MPH_RECONCILE_ACTION_NOOP), "noop") == 0);
+    assert(strcmp(mph_reconcile_action_name(MPH_RECONCILE_ACTION_SET_DEFAULT_INPUT),
+                  "set_default_input") == 0);
+    assert(strcmp(mph_status_name(MPH_STATUS_CAPACITY_EXCEEDED), "capacity_exceeded") == 0);
 }
 
 static void test_core_audio_mapper(void) {
@@ -746,6 +792,40 @@ static void test_inventory_snapshot_and_storage(void) {
     assert(merged_mouse != NULL);
     assert(strcmp(merged_mouse->bluetooth.address, "aa:bb:cc:dd:ee:02") == 0);
 
+    mph_device_t keyboard_hid;
+    mph_device_init(&keyboard_hid);
+    assert(mph_device_id_from_parts(&keyboard_hid.id, "hid", "wired-keyboard") == MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&keyboard_hid, "Wired Keyboard") == MPH_STATUS_OK);
+    keyboard_hid.category = MPH_DEVICE_CATEGORY_KEYBOARD;
+    keyboard_hid.transport = MPH_DEVICE_TRANSPORT_USB;
+    keyboard_hid.hid.vendor_id = 1452;
+    keyboard_hid.hid.product_id = 597;
+    keyboard_hid.hid.usage_page = 1;
+    keyboard_hid.hid.usage = 6;
+    mph_device_set_connection_state(&keyboard_hid, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert_merge_device(inventory, &keyboard_hid);
+
+    mph_device_t keyboard_usb;
+    mph_device_init(&keyboard_usb);
+    assert(mph_device_id_from_parts(&keyboard_usb.id, "usb", "wired-keyboard-shell") ==
+           MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&keyboard_usb, "Wired Keyboard") == MPH_STATUS_OK);
+    keyboard_usb.category = MPH_DEVICE_CATEGORY_USB;
+    keyboard_usb.transport = MPH_DEVICE_TRANSPORT_USB;
+    keyboard_usb.usb.vendor_id = 1452;
+    keyboard_usb.usb.product_id = 597;
+    keyboard_usb.usb.speed_mbps = 12;
+    keyboard_usb.usb.power_ma = 100;
+    mph_device_set_connection_state(&keyboard_usb, MPH_DEVICE_CONNECTION_CONNECTED);
+    size_t before_keyboard_merge = mph_device_list_count(inventory);
+    assert_merge_device(inventory, &keyboard_usb);
+    assert(mph_device_list_count(inventory) == before_keyboard_merge);
+    const mph_device_t *merged_keyboard = mph_device_list_find_by_id(inventory, &keyboard_hid.id);
+    assert(merged_keyboard != NULL);
+    assert(merged_keyboard->usb.vendor_id == 1452);
+    assert(merged_keyboard->usb.product_id == 597);
+    assert(merged_keyboard->usb.speed_mbps == 12);
+
     mph_bluetooth_raw_device_t iphone_raw;
     mph_bluetooth_raw_device_init(&iphone_raw);
     snprintf(iphone_raw.name, sizeof(iphone_raw.name), "%s", "iPhone");
@@ -1086,8 +1166,14 @@ static void test_profile_store(void) {
 static void test_reconcile(void) {
     mph_device_id_t usb_mic;
     mph_device_id_t airpods_mic;
+    mph_device_id_t speakers;
+    mph_device_id_t display_audio;
+    mph_device_id_t camera;
     assert(mph_device_id_from_parts(&usb_mic, "audio", "usb-mic") == MPH_STATUS_OK);
     assert(mph_device_id_from_parts(&airpods_mic, "audio", "airpods-mic") == MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&speakers, "audio", "speakers") == MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&display_audio, "audio", "display-audio") == MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&camera, "camera", "facetime") == MPH_STATUS_OK);
 
     mph_selection_t desired;
     mph_selection_t current;
@@ -1106,6 +1192,24 @@ static void test_reconcile(void) {
     assert(plan.action_count == 1);
     assert(plan.actions[0].type == MPH_RECONCILE_ACTION_SET_DEFAULT_INPUT);
     assert(mph_device_id_equal(&plan.actions[0].target_device_id, &usb_mic));
+
+    assert(mph_selection_set_role_device(&current, MPH_DEVICE_ROLE_DEFAULT_INPUT, &usb_mic) ==
+           MPH_STATUS_OK);
+    assert(mph_reconcile_audio_defaults(&desired, &current, &plan) == MPH_STATUS_OK);
+    assert(plan.action_count == 0);
+
+    assert(mph_selection_set_role_device(&desired, MPH_DEVICE_ROLE_DEFAULT_OUTPUT, &speakers) ==
+           MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&desired, MPH_DEVICE_ROLE_SYSTEM_OUTPUT,
+                                         &display_audio) == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&desired, MPH_DEVICE_ROLE_PREFERRED_CAMERA, &camera) ==
+           MPH_STATUS_OK);
+    assert(mph_reconcile_audio_defaults(&desired, &current, &plan) == MPH_STATUS_OK);
+    assert(plan.action_count == 2);
+    assert(plan.actions[0].type == MPH_RECONCILE_ACTION_SET_DEFAULT_OUTPUT);
+    assert(plan.actions[1].type == MPH_RECONCILE_ACTION_SET_SYSTEM_OUTPUT);
+    assert(mph_device_id_equal(&plan.actions[0].target_device_id, &speakers));
+    assert(mph_device_id_equal(&plan.actions[1].target_device_id, &display_audio));
 }
 
 static void test_reconcile_airpods_reset(void) {
@@ -1320,11 +1424,21 @@ static void test_sqlite_profile_storage(void) {
     assert(db != NULL);
     assert(mph_db_migrate(db) == MPH_STATUS_OK);
     assert(mph_db_schema_version(db) == 1);
+    assert(mph_db_migrate(db) == MPH_STATUS_OK);
+    assert(mph_db_schema_version(db) == 1);
+    assert(sqlite_scalar_int(db_path,
+                             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND "
+                             "name IN ('schema_migrations', 'profiles', "
+                             "'profile_device_roles', 'known_devices', 'active_state');") == 5);
+    assert(sqlite_scalar_int(db_path, "SELECT COUNT(*) FROM schema_migrations;") == 1);
 
     mph_device_id_t mic_id;
     mph_device_id_t output_id;
+    mph_device_id_t system_output_id;
     assert(mph_device_id_from_parts(&mic_id, "audio", "usb-mic") == MPH_STATUS_OK);
     assert(mph_device_id_from_parts(&output_id, "audio", "studio-monitors") == MPH_STATUS_OK);
+    assert(mph_device_id_from_parts(&system_output_id, "audio", "display-audio") ==
+           MPH_STATUS_OK);
     mph_device_id_t camera_id;
     assert(mph_device_id_from_parts(&camera_id, "camera", "logitech-c920") == MPH_STATUS_OK);
 
@@ -1335,9 +1449,14 @@ static void test_sqlite_profile_storage(void) {
            MPH_STATUS_OK);
     assert(mph_profile_set_role_device(&profile, MPH_DEVICE_ROLE_DEFAULT_OUTPUT, &output_id) ==
            MPH_STATUS_OK);
+    assert(mph_profile_set_role_device(&profile, MPH_DEVICE_ROLE_SYSTEM_OUTPUT,
+                                       &system_output_id) == MPH_STATUS_OK);
     assert(mph_profile_set_role_device(&profile, MPH_DEVICE_ROLE_PREFERRED_CAMERA, &camera_id) ==
            MPH_STATUS_OK);
     assert(mph_db_save_profile(db, &profile) == MPH_STATUS_OK);
+    assert(sqlite_scalar_int(db_path,
+                             "SELECT COUNT(*) FROM profile_device_roles "
+                             "WHERE profile_id = 'studio';") == 4);
 
     mph_profile_t loaded;
     bool found = false;
@@ -1351,14 +1470,67 @@ static void test_sqlite_profile_storage(void) {
         mph_selection_get_role_device(&loaded.selection, MPH_DEVICE_ROLE_DEFAULT_OUTPUT),
         &output_id));
     assert(mph_device_id_equal(
+        mph_selection_get_role_device(&loaded.selection, MPH_DEVICE_ROLE_SYSTEM_OUTPUT),
+        &system_output_id));
+    assert(mph_device_id_equal(
         mph_selection_get_role_device(&loaded.selection, MPH_DEVICE_ROLE_PREFERRED_CAMERA),
         &camera_id));
+
+    mph_device_id_t empty_id;
+    mph_device_id_clear(&empty_id);
+    assert(mph_profile_set_name(&profile, "Studio Updated") == MPH_STATUS_OK);
+    assert(mph_profile_set_role_device(&profile, MPH_DEVICE_ROLE_PREFERRED_CAMERA, &empty_id) ==
+           MPH_STATUS_OK);
+    assert(mph_db_save_profile(db, &profile) == MPH_STATUS_OK);
+    assert(sqlite_scalar_int(db_path,
+                             "SELECT COUNT(*) FROM profile_device_roles "
+                             "WHERE profile_id = 'studio';") == 3);
+    assert(mph_db_load_profile(db, "studio", &loaded, &found) == MPH_STATUS_OK);
+    assert(found);
+    assert(strcmp(loaded.name, "Studio Updated") == 0);
+    assert(mph_device_id_is_empty(
+        mph_selection_get_role_device(&loaded.selection, MPH_DEVICE_ROLE_PREFERRED_CAMERA)));
 
     mph_profile_store_t *store = mph_profile_store_create();
     assert(store != NULL);
     assert(mph_db_load_profiles(db, store) == MPH_STATUS_OK);
     assert(mph_profile_store_count(store) == 1);
     mph_profile_store_destroy(store);
+
+    mph_selection_t active_profile;
+    mph_selection_init(&active_profile);
+    active_profile.mode = MPH_ACTIVE_MODE_PROFILE;
+    active_profile.enforce_audio_defaults = false;
+    assert(mph_selection_set_profile_id(&active_profile, "studio") == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&active_profile, MPH_DEVICE_ROLE_DEFAULT_INPUT,
+                                         &mic_id) == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&active_profile, MPH_DEVICE_ROLE_DEFAULT_OUTPUT,
+                                         &output_id) == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&active_profile, MPH_DEVICE_ROLE_SYSTEM_OUTPUT,
+                                         &system_output_id) == MPH_STATUS_OK);
+    assert(mph_selection_set_role_device(&active_profile, MPH_DEVICE_ROLE_PREFERRED_CAMERA,
+                                         &camera_id) == MPH_STATUS_OK);
+    assert(mph_db_save_active_selection(db, &active_profile) == MPH_STATUS_OK);
+
+    mph_selection_t loaded_active_profile;
+    found = false;
+    assert(mph_db_load_active_selection(db, &loaded_active_profile, &found) == MPH_STATUS_OK);
+    assert(found);
+    assert(loaded_active_profile.mode == MPH_ACTIVE_MODE_PROFILE);
+    assert(!loaded_active_profile.enforce_audio_defaults);
+    assert(strcmp(loaded_active_profile.profile_id, "studio") == 0);
+    assert(mph_device_id_equal(
+        mph_selection_get_role_device(&loaded_active_profile, MPH_DEVICE_ROLE_DEFAULT_INPUT),
+        &mic_id));
+    assert(mph_device_id_equal(
+        mph_selection_get_role_device(&loaded_active_profile, MPH_DEVICE_ROLE_DEFAULT_OUTPUT),
+        &output_id));
+    assert(mph_device_id_equal(
+        mph_selection_get_role_device(&loaded_active_profile, MPH_DEVICE_ROLE_SYSTEM_OUTPUT),
+        &system_output_id));
+    assert(mph_device_id_equal(
+        mph_selection_get_role_device(&loaded_active_profile, MPH_DEVICE_ROLE_PREFERRED_CAMERA),
+        &camera_id));
 
     mph_selection_t manual;
     mph_selection_init(&manual);
@@ -1386,15 +1558,35 @@ static void test_sqlite_profile_storage(void) {
     assert(mph_device_id_from_parts(&device.id, "audio", "usb-mic") == MPH_STATUS_OK);
     assert(mph_device_set_display_name(&device, "USB Microphone") == MPH_STATUS_OK);
     assert(mph_device_set_vendor_name(&device, "Test Vendor") == MPH_STATUS_OK);
+    assert(mph_device_set_model_name(&device, "MV7") == MPH_STATUS_OK);
+    assert(mph_device_set_serial_number(&device, "SERIAL-USB-MIC") == MPH_STATUS_OK);
     device.category = MPH_DEVICE_CATEGORY_AUDIO_INPUT;
     device.transport = MPH_DEVICE_TRANSPORT_USB;
-    device.is_connected = true;
+    mph_device_set_connection_state(&device, MPH_DEVICE_CONNECTION_CONNECTED);
     assert(mph_db_save_known_device(db, &device) == MPH_STATUS_OK);
+
+    mph_device_list_t *loaded_devices = mph_device_list_create();
+    assert(loaded_devices != NULL);
+    assert(mph_db_load_known_devices(db, loaded_devices) == MPH_STATUS_OK);
+    const mph_device_t *loaded_device = mph_device_list_find_by_id(loaded_devices, &device.id);
+    assert(loaded_device != NULL);
+    assert(strcmp(loaded_device->display_name, "USB Microphone") == 0);
+    assert(strcmp(loaded_device->vendor_name, "Test Vendor") == 0);
+    assert(strcmp(loaded_device->model_name, "MV7") == 0);
+    assert(strcmp(loaded_device->serial_number, "SERIAL-USB-MIC") == 0);
+    assert(loaded_device->category == MPH_DEVICE_CATEGORY_AUDIO_INPUT);
+    assert(loaded_device->transport == MPH_DEVICE_TRANSPORT_USB);
+    assert(loaded_device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+    mph_device_list_destroy(loaded_devices);
 
     assert(mph_db_delete_profile(db, "studio") == MPH_STATUS_OK);
     found = true;
     assert(mph_db_load_profile(db, "studio", &loaded, &found) == MPH_STATUS_OK);
     assert(!found);
+    assert(sqlite_scalar_int(db_path,
+                             "SELECT COUNT(*) FROM profile_device_roles "
+                             "WHERE profile_id = 'studio';") == 0);
+    assert(mph_db_delete_profile(db, "studio") == MPH_STATUS_NOT_FOUND);
 
     mph_db_close(db);
     unlink(db_path);
@@ -1406,6 +1598,7 @@ int main(void) {
     test_swift_bridge_cstrings();
     test_device_modeling_from_fixture();
     test_device_normalization_and_matching();
+    test_serialization_names_roundtrip();
     test_core_audio_mapper();
     test_display_mapper();
     test_camera_mapper();

@@ -404,15 +404,15 @@ Commit: `chore(app): configure permissions and privacy strings`
 
 ## 25. Тесты C-core
 
-- [ ] Покрыть SQLite migrations.
-- [ ] Покрыть profile CRUD.
-- [ ] Покрыть device matching.
-- [ ] Покрыть deduplication.
-- [ ] Покрыть reconciliation decisions.
-- [ ] Покрыть manual control behavior.
-- [ ] Покрыть missing device behavior.
-- [ ] Покрыть serialization/deserialization.
-- [ ] Сделать `make test-core` обязательной проверкой перед релизом.
+- [x] Покрыть SQLite migrations.
+- [x] Покрыть profile CRUD.
+- [x] Покрыть device matching.
+- [x] Покрыть deduplication.
+- [x] Покрыть reconciliation decisions.
+- [x] Покрыть manual control behavior.
+- [x] Покрыть missing device behavior.
+- [x] Покрыть serialization/deserialization.
+- [x] Сделать `make test-core` обязательной проверкой перед релизом.
 
 Commit: `test(core): cover profiles inventory and reconciliation`
 
@@ -503,7 +503,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(app): keep selected devices active in background`
 - [x] `chore(app): add app resources and metadata`
 - [x] `chore(app): configure permissions and privacy strings`
-- [ ] `test(core): cover profiles inventory and reconciliation`
+- [x] `test(core): cover profiles inventory and reconciliation`
 - [ ] `test(app): verify macOS device switching flows`
 - [ ] `chore(scripts): add build and test commands`
 - [ ] `docs: document MacPeripheralHub usage and architecture`
