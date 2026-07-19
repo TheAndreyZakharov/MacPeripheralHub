@@ -91,7 +91,9 @@ final class BackgroundServiceController {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.reloadStateAndReconcile(reason: "wake from sleep")
+                Task { @MainActor in
+                    self?.reloadStateAndReconcile(reason: "wake from sleep")
+                }
             }
         )
         observers.append(
@@ -100,7 +102,9 @@ final class BackgroundServiceController {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.reloadStateAndReconcile(reason: "user session became active")
+                Task { @MainActor in
+                    self?.reloadStateAndReconcile(reason: "user session became active")
+                }
             }
         )
         observers.append(
@@ -109,7 +113,9 @@ final class BackgroundServiceController {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.reloadStateAndReconcile(reason: "application became active")
+                Task { @MainActor in
+                    self?.reloadStateAndReconcile(reason: "application became active")
+                }
             }
         )
         observers.append(
@@ -118,7 +124,9 @@ final class BackgroundServiceController {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.scheduleRefresh(reason: "display configuration changed")
+                Task { @MainActor in
+                    self?.scheduleRefresh(reason: "display configuration changed")
+                }
             }
         )
     }

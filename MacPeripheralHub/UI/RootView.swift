@@ -400,6 +400,14 @@ final class RootView: NSView {
         }
 
         if errorLabel.superview == nil {
+            let errorIcon = NSImageView(
+                image: NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: "Error") ??
+                    NSImage()
+            )
+            errorIcon.symbolConfiguration = .init(pointSize: 14, weight: .semibold)
+            errorIcon.contentTintColor = .systemRed
+            errorIcon.setContentHuggingPriority(.required, for: .horizontal)
+
             let dismissButton = NSButton()
             dismissButton.image = NSImage(systemSymbolName: "xmark", accessibilityDescription: "Dismiss")
             dismissButton.bezelStyle = .toolbar
@@ -407,7 +415,7 @@ final class RootView: NSView {
             dismissButton.action = #selector(dismissError)
             dismissButton.toolTip = "Dismiss error"
 
-            let errorStack = NSStackView(views: [errorLabel, NSView(), dismissButton])
+            let errorStack = NSStackView(views: [errorIcon, errorLabel, NSView(), dismissButton])
             errorStack.orientation = .horizontal
             errorStack.alignment = .centerY
             errorStack.spacing = 10
@@ -457,7 +465,13 @@ final class RootView: NSView {
 
     private func makeManualViews() -> [NSView] {
         if snapshot.isRefreshingInventory && snapshot.inventory.isEmpty {
-            return [makeStateView(title: "Loading devices", detail: "")]
+            return [
+                makeStateView(
+                    title: "Loading devices",
+                    detail: "Scanning connected peripherals and current system defaults.",
+                    symbolName: "arrow.triangle.2.circlepath"
+                )
+            ]
         }
 
         var views: [NSView] = [
@@ -627,17 +641,35 @@ final class RootView: NSView {
         var views: [NSView] = [makeDeviceToolbar(total: snapshot.inventory.count, visible: filteredDevices.count)]
 
         if snapshot.isRefreshingInventory && snapshot.inventory.isEmpty {
-            views.append(makeStateView(title: "Loading devices", detail: ""))
+            views.append(
+                makeStateView(
+                    title: "Loading devices",
+                    detail: "Scanning connected peripherals and current system defaults.",
+                    symbolName: "arrow.triangle.2.circlepath"
+                )
+            )
             return views
         }
 
         if snapshot.inventory.isEmpty {
-            views.append(makeStateView(title: "No devices found", detail: ""))
+            views.append(
+                makeStateView(
+                    title: "No devices found",
+                    detail: "Connect a peripheral or refresh when macOS finishes detecting devices.",
+                    symbolName: "externaldrive.badge.xmark"
+                )
+            )
             return views
         }
 
         if filteredDevices.isEmpty {
-            views.append(makeStateView(title: "No matching devices", detail: deviceFilterText))
+            views.append(
+                makeStateView(
+                    title: "No matching devices",
+                    detail: "Nothing matches \"\(deviceFilterText)\".",
+                    symbolName: "magnifyingglass"
+                )
+            )
             return views
         }
 
@@ -678,7 +710,13 @@ final class RootView: NSView {
         }
 
         if snapshot.profiles.isEmpty {
-            views.append(makeStateView(title: "No profiles yet", detail: ""))
+            views.append(
+                makeStateView(
+                    title: "No profiles yet",
+                    detail: "Create a profile to save a stable combination of input, output, system output and camera preferences.",
+                    symbolName: "person.crop.rectangle.stack"
+                )
+            )
             return views
         }
 
@@ -1190,12 +1228,26 @@ final class RootView: NSView {
         return row
     }
 
-    private func makeStateView(title: String, detail: String) -> NSView {
+    private func makeStateView(title: String, detail: String, symbolName: String? = nil) -> NSView {
+        var arrangedViews: [NSView] = []
+        if let symbolName,
+           let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: title) {
+            let imageView = NSImageView(image: image)
+            imageView.symbolConfiguration = .init(pointSize: 30, weight: .regular)
+            imageView.contentTintColor = .tertiaryLabelColor
+            arrangedViews.append(imageView)
+        }
+
         let titleLabel = makeLabel(title, size: 15, weight: .semibold, color: .labelColor)
         let detailLabel = makeLabel(detail, size: 13, weight: .regular, color: .secondaryLabelColor)
         detailLabel.isHidden = detail.isEmpty
+        detailLabel.alignment = .center
+        detailLabel.maximumNumberOfLines = 3
 
-        let stack = NSStackView(views: [titleLabel, detailLabel])
+        arrangedViews.append(titleLabel)
+        arrangedViews.append(detailLabel)
+
+        let stack = NSStackView(views: arrangedViews)
         stack.orientation = .vertical
         stack.alignment = .centerX
         stack.spacing = 6

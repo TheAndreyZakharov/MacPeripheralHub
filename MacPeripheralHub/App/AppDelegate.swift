@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var nextDockProfileTag = 4000
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        configureApplicationIcon()
         NSApp.setActivationPolicy(.regular)
         configureMainMenu()
         statusMenuController = StatusMenuController(appState: appState) { [weak self] in
@@ -100,6 +101,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appState.activateProfile(id: profileID)
     }
 
+    @objc private func showAboutPanel(_ sender: Any?) {
+        let version = bundleString("CFBundleShortVersionString", fallback: "1.0.0")
+        let build = bundleString("CFBundleVersion", fallback: "1")
+        let credits = NSAttributedString(
+            string: "MacPeripheralHub keeps selected macOS audio defaults stable across device changes.",
+            attributes: [
+                .font: NSFont.systemFont(ofSize: 12),
+                .foregroundColor: NSColor.secondaryLabelColor
+            ]
+        )
+
+        var options: [NSApplication.AboutPanelOptionKey: Any] = [
+            .applicationName: "MacPeripheralHub",
+            .applicationVersion: version,
+            .version: "Version \(version) (Build \(build))",
+            .credits: credits
+        ]
+        options[.applicationIcon] = NSImage(named: "AppIcon") ?? NSApp.applicationIconImage
+
+        NSApp.orderFrontStandardAboutPanel(options: options)
+    }
+
     private func hideApplicationFromDock() {
         NSApp.setActivationPolicy(.accessory)
     }
@@ -128,6 +151,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func configureApplicationIcon() {
+        if let image = NSImage(named: "AppIcon") {
+            NSApp.applicationIconImage = image
+        }
+    }
+
+    private func bundleString(_ key: String, fallback: String) -> String {
+        Bundle.main.object(forInfoDictionaryKey: key) as? String ?? fallback
+    }
+
     private func configureMainMenu() {
         let mainMenu = NSMenu()
 
@@ -135,11 +168,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainMenu.addItem(appMenuItem)
 
         let appMenu = NSMenu(title: "MacPeripheralHub")
-        appMenu.addItem(
-            withTitle: "About MacPeripheralHub",
-            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+        let aboutItem = NSMenuItem(
+            title: "About MacPeripheralHub",
+            action: #selector(showAboutPanel(_:)),
             keyEquivalent: ""
         )
+        aboutItem.target = self
+        appMenu.addItem(aboutItem)
         appMenu.addItem(.separator())
         appMenu.addItem(
             withTitle: "Quit MacPeripheralHub",

@@ -30,12 +30,7 @@ final class StatusMenuController: NSObject {
             return
         }
 
-        let image = NSImage(
-            systemSymbolName: "dot.radiowaves.left.and.right",
-            accessibilityDescription: "MacPeripheralHub"
-        )
-        image?.isTemplate = true
-        button.image = image
+        button.image = makeMenuBarIcon()
         button.toolTip = "MacPeripheralHub"
     }
 
@@ -103,9 +98,16 @@ final class StatusMenuController: NSObject {
 
     private func makeHeaderItem() -> NSMenuItem {
         let item = NSMenuItem(title: "MacPeripheralHub", action: nil, keyEquivalent: "")
-        item.image = NSImage(systemSymbolName: "externaldrive.connected.to.line.below", accessibilityDescription: nil)
+        item.image = makeMenuBarIcon()
         item.isEnabled = false
         return item
+    }
+
+    private func makeMenuBarIcon() -> NSImage? {
+        let image = NSImage(named: "MenuBarIcon") ??
+            NSImage(systemSymbolName: "dot.radiowaves.left.and.right", accessibilityDescription: "MacPeripheralHub")
+        image?.isTemplate = true
+        return image
     }
 
     private func makeStateItem(_ title: String, _ value: String) -> NSMenuItem {

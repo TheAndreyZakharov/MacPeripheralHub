@@ -381,13 +381,13 @@ Commit: `feat(app): keep selected devices active in background`
 
 ## 23. Иконка, ресурсы и polish
 
-- [ ] Добавить app icon.
-- [ ] Добавить menu bar template icon.
-- [ ] Добавить аккуратные empty/loading/error states.
-- [ ] Добавить About window с версией `1.0.0`.
-- [ ] Проверить название приложения во всех системных местах.
-- [ ] Проверить Info.plist metadata.
-- [ ] Добавить privacy usage descriptions, если требуются для камер/микрофонов.
+- [x] Добавить app icon.
+- [x] Добавить menu bar template icon.
+- [x] Добавить аккуратные empty/loading/error states.
+- [x] Добавить About window с версией `1.0.0`.
+- [x] Проверить название приложения во всех системных местах.
+- [x] Проверить Info.plist metadata.
+- [x] Добавить privacy usage descriptions, если требуются для камер/микрофонов.
 
 Commit: `chore(app): add app resources and metadata`
 
@@ -501,7 +501,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(app): hide Dock icon when window closes`
 - [x] `feat(app): add launch at login support`
 - [x] `feat(app): keep selected devices active in background`
-- [ ] `chore(app): add app resources and metadata`
+- [x] `chore(app): add app resources and metadata`
 - [ ] `chore(app): configure permissions and privacy strings`
 - [ ] `test(core): cover profiles inventory and reconciliation`
 - [ ] `test(app): verify macOS device switching flows`
