@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 
@@ -8,18 +9,28 @@ final class AppState: ObservableObject {
     @Published private(set) var activeSelection: SelectionViewModel = .empty
     @Published private(set) var isRefreshingInventory = false
     @Published private(set) var loginItem = LoginItemViewModel.unknown
+    @Published private(set) var appearancePreference: AppAppearancePreference
     @Published var error: AppErrorViewModel?
+
+    private static let appearancePreferenceKey = "appearancePreference"
 
     private let core: PeripheralCoreBridge
     private let loginItems: LoginItemController
+    private let userDefaults: UserDefaults
     private lazy var backgroundServices = BackgroundServiceController(core: core, appState: self)
 
     init(
         core: PeripheralCoreBridge = PeripheralCoreBridge(),
-        loginItems: LoginItemController = LoginItemController()
+        loginItems: LoginItemController = LoginItemController(),
+        userDefaults: UserDefaults = .standard
     ) {
         self.core = core
         self.loginItems = loginItems
+        self.userDefaults = userDefaults
+        self.appearancePreference = AppAppearancePreference(
+            rawValue: userDefaults.string(forKey: Self.appearancePreferenceKey) ?? ""
+        ) ?? .system
+        applyAppearancePreference(self.appearancePreference)
         refreshLoginItemStatus()
     }
 
@@ -191,6 +202,12 @@ final class AppState: ObservableObject {
         }
     }
 
+    func setAppearancePreference(_ preference: AppAppearancePreference) {
+        appearancePreference = preference
+        userDefaults.set(preference.rawValue, forKey: Self.appearancePreferenceKey)
+        applyAppearancePreference(preference)
+    }
+
     func dismissError() {
         error = nil
     }
@@ -216,5 +233,16 @@ final class AppState: ObservableObject {
     private func presentError(_ error: Error, operation: String) {
         let message = error.localizedDescription.isEmpty ? String(describing: error) : error.localizedDescription
         self.error = AppErrorViewModel(operation: operation, message: message)
+    }
+
+    private func applyAppearancePreference(_ preference: AppAppearancePreference) {
+        switch preference {
+        case .system:
+            NSApp.appearance = nil
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
     }
 }

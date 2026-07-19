@@ -60,6 +60,7 @@ final class RootView: NSView {
         var activeSelection: SelectionViewModel
         var isRefreshingInventory: Bool
         var loginItem: LoginItemViewModel
+        var appearancePreference: AppAppearancePreference
         var error: AppErrorViewModel?
 
         static let empty = Snapshot(
@@ -68,6 +69,7 @@ final class RootView: NSView {
             activeSelection: .empty,
             isRefreshingInventory: false,
             loginItem: .unknown,
+            appearancePreference: .system,
             error: nil
         )
     }
@@ -387,6 +389,14 @@ final class RootView: NSView {
                 self?.render()
             }
             .store(in: &cancellables)
+
+        appState.$appearancePreference
+            .receive(on: RunLoop.main)
+            .sink { [weak self] appearancePreference in
+                self?.snapshot.appearancePreference = appearancePreference
+                self?.render()
+            }
+            .store(in: &cancellables)
     }
 
     @objc private func selectSection(_ sender: NSButton) {
@@ -408,6 +418,15 @@ final class RootView: NSView {
 
     @objc private func refreshLoginItemStatus() {
         appState.refreshLoginItemStatus()
+    }
+
+    @objc private func appearancePreferenceChanged(_ sender: NSPopUpButton) {
+        guard let rawValue = representedString(from: sender.selectedItem),
+              let preference = AppAppearancePreference(rawValue: rawValue) else {
+            return
+        }
+
+        appState.setAppearancePreference(preference)
     }
 
     @objc private func deviceFilterChanged(_ sender: NSSearchField) {
@@ -674,16 +693,32 @@ final class RootView: NSView {
 
     private func makeAppearanceSettingsRow() -> NSView {
         let title = makeLabel("Theme", size: 13, weight: .medium, color: .labelColor)
-        let detail = makeLabel("Follows macOS system appearance", size: 12, weight: .regular, color: .secondaryLabelColor)
+        let detail = makeLabel(snapshot.appearancePreference.detail, size: 12, weight: .regular, color: .secondaryLabelColor)
         detail.maximumNumberOfLines = 2
 
-        let status = makeStatusLabel("System")
+        let picker = NSPopUpButton()
+        picker.bezelStyle = .rounded
+        picker.target = self
+        picker.action = #selector(appearancePreferenceChanged(_:))
+        picker.toolTip = "Choose app appearance"
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.widthAnchor.constraint(greaterThanOrEqualToConstant: 160).isActive = true
+
+        for preference in AppAppearancePreference.allCases {
+            picker.addItem(withTitle: preference.title)
+            picker.lastItem?.representedObject = preference.rawValue
+        }
+
+        if let item = picker.itemArray.first(where: { representedString(from: $0) == snapshot.appearancePreference.rawValue }) {
+            picker.select(item)
+        }
+
         let textStack = NSStackView(views: [title, detail])
         textStack.orientation = .vertical
         textStack.alignment = .leading
         textStack.spacing = 3
 
-        let row = NSStackView(views: [textStack, NSView(), status])
+        let row = NSStackView(views: [textStack, NSView(), picker])
         row.orientation = .horizontal
         row.alignment = .centerY
         row.spacing = 12

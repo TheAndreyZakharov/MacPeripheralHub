@@ -237,6 +237,36 @@ enum DeviceRole: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+enum AppAppearancePreference: String, CaseIterable, Identifiable, Sendable {
+    case system
+    case light
+    case dark
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .system:
+            return "System"
+        case .light:
+            return "Light"
+        case .dark:
+            return "Dark"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .system:
+            return "Follows macOS system appearance."
+        case .light:
+            return "Always uses the light appearance."
+        case .dark:
+            return "Always uses the dark appearance."
+        }
+    }
+}
+
 struct DeviceViewModel: Identifiable, Equatable, Sendable {
     let id: String
     let displayName: String
