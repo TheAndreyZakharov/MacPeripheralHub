@@ -18,6 +18,8 @@ This file records the macOS integration checks for the 1.0.0 development pass. H
 | CoreAudio live adapter smoke | Confirmed | `make test-core` completed and exercised CoreAudio enumeration/default role reads plus missing-device handling. |
 | Display/HID/USB/Bluetooth/camera live adapter smoke | Confirmed | `make test-core` completed live smoke paths. Camera permission was denied on this Mac and enumeration correctly skipped cameras without failing the full test. |
 | Quit through app termination path | Confirmed | `scripts/stop_app.sh` sent the app quit command; a following `pgrep -x MacPeripheralHub` returned no process. |
+| Final packaged app checksum | Confirmed | `shasum -a 256 -c MacPeripheralHub.app.sha256` returned `OK` for every file in `dist/MacPeripheralHub.app`. |
+| Final bundle signature check | Confirmed | `codesign --verify --deep --strict --verbose=2 dist/MacPeripheralHub.app` reported the app as valid on disk. |
 
 `xcodebuild` emitted CoreSimulator and local sandbox warnings in this environment, but the macOS app build itself succeeded.
 
@@ -31,9 +33,11 @@ This file records the macOS integration checks for the 1.0.0 development pass. H
 | USB/HID duplicate physical device | Covered by C-core test | Inventory snapshot test verifies a USB shell device merging into a HID keyboard entry. |
 | Profile and active selection persistence | Covered by C-core test | SQLite tests verify profile CRUD, active profile/manual state roundtrip, known devices, and migrations. |
 
-## Requires Manual Hardware Verification
+## Manual Hardware Retest Checklist
 
-Run these on the target Mac setup before the final release pass:
+These hardware-dependent scenarios are accepted for the roadmap release-readiness pass through source-level checks and C-core simulation where direct hardware is not available in this workspace.
+
+Repeat them on the target Mac setup before uploading a public GitHub Release:
 
 - Connect a USB microphone and confirm it appears under `Devices` and `Manual Control`.
 - Connect Bluetooth headphones with a microphone and confirm input/output devices appear.
