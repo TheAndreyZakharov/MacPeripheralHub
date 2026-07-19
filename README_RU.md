@@ -267,17 +267,109 @@ Checksum-файл проверяет release zip archive.
 
 `scripts/package_app.sh` тоже запускает `scripts/test_all.sh` перед копированием release-приложения в `dist`.
 
+## Архитектурные решения
+
+MacPeripheralHub разделен на нативную macOS-оболочку и переносимый C core.
+
+Swift и AppKit используются для окна приложения, пункта menu bar, Dock behavior, системных prompts, окон проверки media и пользовательского состояния.
+
+Так интерфейс остается согласованным с поведением macOS, а для системной работы с железом не нужен web wrapper.
+
+C используется для самой большой и долгоживущей части репозитория: device models, profile data, matching, storage-facing logic, reconciliation decisions и tests.
+
+Такой выбор делает core детерминированным, удобным для проверки маленькими test binaries и подходящим для прямой интеграции с низкоуровневыми macOS frameworks.
+
+Swift-слой общается с C-слоем через узкий bridge, а не дублирует правила устройств и профилей в UI.
+
+SQLite используется потому, что профилям, выбранным defaults, known devices, aliases и migrations нужно надежное локальное хранение без сервера и network dependency.
+
+Приложение хранит данные в локальной пользовательской Application Support area и оставляет основной workflow offline.
+
+Inventory собирается из macOS APIs через role-specific adapters для audio, displays, cameras, USB, HID и Bluetooth.
+
+Эти adapters нормализуют системную metadata в общие core device records до того, как UI их отображает.
+
+Защита audio defaults реализована как reconciliation, а не как слепой polling.
+
+Приложение хранит desired input, output и system output, следит за изменениями устройств, делает debounce нестабильных моментов подключения и возвращает только поддерживаемые audio defaults.
+
+Manual switching намеренно переводит active state в `Manual Control`, чтобы временный выбор не перезаписывал сохраненные профили.
+
+Работа с камерами намеренно отличается от работы с audio, потому что macOS не дает одного универсального default camera switch для всех приложений.
+
+MacPeripheralHub может хранить preferred camera, показывать ее в профилях и открывать camera preview, но финальный выбор камеры все равно может принадлежать конкретному приложению.
+
+Permission-sensitive features запускаются только действием пользователя.
+
+Microphone live monitoring и camera preview запрашивают macOS permission только когда пользователь запускает эти проверки, а `Settings` показывает статус и shortcuts обратно в Privacy Settings.
+
+Пункт menu bar является частью продуктовой архитектуры, а не просто shortcut.
+
+Закрытие главного окна скрывает присутствие в Dock, но background watchers продолжают удерживать выбранные audio defaults из menu bar.
+
+Build scripts оставлены как основные входные точки проекта, чтобы приложение можно было проверить, упаковать, снабдить checksum и подготовить для GitHub Releases одной командой.
+
 ## Структура проекта
 
-    MacPeripheralHub/        AppKit-приложение, окно, menu bar, Dock behavior и Swift system bridge
-    Core/include/            Публичные C headers для core library
-    Core/src/                C core, Objective-C system adapters, SQLite storage, inventory и reconciliation
-    Core/tests/              C smoke, unit, mapper, storage и reconciliation tests
-    Core/fixtures/           Искусственные device fixtures для core tests
-    Storage/migrations/      SQLite schema migrations
-    scripts/                 Build, run, stop, test и package commands
-    docs/                    Product notes, roadmap, privacy notes и integration checks
-    assets/forreadme/        README assets
+    MacPeripheralHub/                                Нативное macOS AppKit-приложение
+    MacPeripheralHub/App/main.swift                  Entry point приложения
+    MacPeripheralHub/App/AppDelegate.swift           App lifecycle, activation, close behavior и startup flow
+    MacPeripheralHub/App/MainWindowController.swift  Controller главного окна приложения
+    MacPeripheralHub/MenuBar/StatusMenuController.swift
+                                                     Menu bar status item, quick switching, profile activation, open window и Quit
+    MacPeripheralHub/UI/RootView.swift               Главный tabbed UI для Manual Control, Devices, Profiles и Settings
+    MacPeripheralHub/System/AppState.swift           High-level observable app state и user actions
+    MacPeripheralHub/System/BackgroundServiceController.swift
+                                                     Background refresh и reconciliation coordinator
+    MacPeripheralHub/System/CoreModels.swift         Swift view models, сопоставленные с C core
+    MacPeripheralHub/System/PeripheralCoreBridge.swift
+                                                     Swift-to-C bridge для inventory, profiles, selections, storage и reconciliation
+    MacPeripheralHub/System/LoginItemController.swift
+                                                     Launch-at-login integration
+    MacPeripheralHub/System/MediaTestController.swift
+                                                     Glass playback, microphone monitoring, camera preview и media permissions
+    MacPeripheralHub/Resources/Info.plist            Bundle metadata и macOS usage descriptions
+    MacPeripheralHub/Resources/MacPeripheralHub.entitlements
+                                                     Camera и audio-input entitlements для macOS privacy prompts
+    MacPeripheralHub/Resources/Assets.xcassets       Application icon и accent assets
+    Core/include/PeripheralCore.h                    Umbrella public C header
+    Core/include/module.modulemap                    Clang module map для Swift и C integration
+    Core/include/mph_core.h                          Core app context lifecycle
+    Core/include/mph_device.h                        Device model, categories, roles, metadata и status
+    Core/include/mph_device_id.h                     Stable device identity и matching helpers
+    Core/include/mph_inventory.h                     Inventory scan API и combined device collection
+    Core/include/mph_profile.h                       Profile model и expected device selections
+    Core/include/mph_profile_store.h                 SQLite-backed profile persistence API
+    Core/include/mph_selection.h                     Active manual selection и desired defaults
+    Core/include/mph_reconcile.h                     Desired-vs-current reconciliation decisions
+    Core/include/mph_audio_watcher.h                 Audio watcher API для default-device protection
+    Core/include/mph_core_audio.h                    CoreAudio enumeration и default switching
+    Core/include/mph_swift_bridge.h                  C ABI, который использует Swift
+    Core/include/mph_db.h                            SQLite connection, schema и migration helpers
+    Core/include/mph_display.h                       Display enumeration API
+    Core/include/mph_camera.h                        Camera enumeration API
+    Core/include/mph_usb.h                           USB и hub enumeration API
+    Core/include/mph_hid.h                           Keyboard, mouse и trackpad enumeration API
+    Core/include/mph_bluetooth.h                     Bluetooth metadata API
+    Core/src/                                        C implementations для core logic и macOS adapters
+    Core/src/mph_core.c                              Core context wiring для database, inventory и reconciliation
+    Core/src/mph_profile_store.c                     SQLite profile, known-device, alias и active-state storage
+    Core/src/mph_reconcile.c                         Audio restore decisions и retry behavior
+    Core/src/mph_audio_watcher.c                     CoreAudio listeners и background watcher worker
+    Core/src/mph_swift_bridge.c                      Stable C functions, которые использует Swift application
+    Core/src/mph_camera_avfoundation.m               AVFoundation camera adapter
+    Core/src/mph_bluetooth_iobluetooth.m             IOBluetooth adapter
+    Core/tests/test_core_smoke.c                     End-to-end C smoke test для storage, inventory и watcher flow
+    Core/fixtures/                                   Synthetic fixture snapshots для core test scenarios
+    Storage/migrations/001_initial_schema.sql        Initial SQLite schema для profiles и device memory
+    scripts/build_app.sh                             Debug app build command
+    scripts/build_release.sh                         Release app build command
+    scripts/run_app.sh                               Local app launch command
+    scripts/stop_app.sh                              Local app stop command
+    scripts/test_all.sh                              Full local test и build verification
+    scripts/package_app.sh                           Test, release build, dist copy, zip и checksum command
+    docs/                                           Product notes, roadmap, privacy notes и integration checks
+    assets/forreadme/                                README logo и walkthrough images
 
 ## Стек технологий
 

@@ -267,17 +267,109 @@ Run the full local build and test flow:
 
 `scripts/package_app.sh` also runs `scripts/test_all.sh` before copying the release app into `dist`.
 
+## Architectural decisions
+
+MacPeripheralHub is split into a native macOS shell and a portable C core.
+
+Swift and AppKit are used for the application window, menu bar item, Dock behavior, system prompts, media test windows, and user-facing state.
+
+This keeps the interface aligned with macOS behavior and avoids a web wrapper for system-level hardware work.
+
+C is used for the largest and most durable part of the repository: device models, profile data, matching, storage-facing logic, reconciliation decisions, and tests.
+
+That choice keeps the core deterministic, easy to exercise from small test binaries, and suitable for direct integration with low-level macOS frameworks.
+
+The Swift layer talks to the C layer through a narrow bridge instead of duplicating device and profile rules in the UI.
+
+SQLite is used because profiles, selected defaults, known devices, aliases, and migrations need durable local storage without a server or network dependency.
+
+The app stores data in the user's local Application Support area and keeps the core workflow offline.
+
+Inventory is collected from macOS APIs by role-specific adapters for audio, displays, cameras, USB, HID, and Bluetooth.
+
+Those adapters normalize system-specific metadata into common core device records before the UI renders them.
+
+Audio default protection is implemented as reconciliation rather than blind polling.
+
+The app stores the desired input, output, and system output, watches device changes, debounces unstable connection moments, and restores only supported audio defaults.
+
+Manual switching intentionally moves the active state into `Manual Control` so temporary choices do not overwrite saved profiles.
+
+Camera handling is intentionally different from audio handling because macOS does not expose one universal default camera switch for all applications.
+
+MacPeripheralHub can store a preferred camera, show it in profiles, and preview cameras, but final camera selection can still belong to each calling app.
+
+Permission-sensitive features are user-triggered.
+
+Microphone live monitoring and camera preview ask for macOS permission only when the user starts those checks, and `Settings` exposes status plus shortcuts back to Privacy Settings.
+
+The menu bar item is part of the product architecture, not just a shortcut.
+
+Closing the main window hides the Dock presence while background watchers continue to maintain selected audio defaults from the menu bar.
+
+Build scripts are kept as first-class project entry points so the app can be tested, packaged, checksummed, and prepared for GitHub Releases with one command.
+
 ## Project structure
 
-    MacPeripheralHub/        AppKit application, window, menu bar, Dock behavior, and Swift system bridge
-    Core/include/            Public C headers for the core library
-    Core/src/                C core, Objective-C system adapters, SQLite storage, inventory, and reconciliation
-    Core/tests/              C smoke, unit, mapper, storage, and reconciliation tests
-    Core/fixtures/           Synthetic device fixtures for core tests
-    Storage/migrations/      SQLite schema migrations
-    scripts/                 Build, run, stop, test, and package commands
-    docs/                    Product notes, roadmap, privacy notes, and integration checks
-    assets/forreadme/        README assets
+    MacPeripheralHub/                                Native macOS AppKit application
+    MacPeripheralHub/App/main.swift                  Application entry point
+    MacPeripheralHub/App/AppDelegate.swift           App lifecycle, activation, close behavior, and startup flow
+    MacPeripheralHub/App/MainWindowController.swift  Main application window controller
+    MacPeripheralHub/MenuBar/StatusMenuController.swift
+                                                     Menu bar status item, quick switching, profile activation, open window, and Quit
+    MacPeripheralHub/UI/RootView.swift               Main tabbed UI for Manual Control, Devices, Profiles, and Settings
+    MacPeripheralHub/System/AppState.swift           High-level observable app state and user actions
+    MacPeripheralHub/System/BackgroundServiceController.swift
+                                                     Background refresh and reconciliation coordinator
+    MacPeripheralHub/System/CoreModels.swift         Swift view models mapped from the C core
+    MacPeripheralHub/System/PeripheralCoreBridge.swift
+                                                     Swift-to-C bridge for inventory, profiles, selections, storage, and reconciliation
+    MacPeripheralHub/System/LoginItemController.swift
+                                                     Launch-at-login integration
+    MacPeripheralHub/System/MediaTestController.swift
+                                                     Glass playback, microphone monitoring, camera preview, and media permissions
+    MacPeripheralHub/Resources/Info.plist            Bundle metadata and macOS usage descriptions
+    MacPeripheralHub/Resources/MacPeripheralHub.entitlements
+                                                     Camera and audio-input entitlements for macOS privacy prompts
+    MacPeripheralHub/Resources/Assets.xcassets       Application icon and accent assets
+    Core/include/PeripheralCore.h                    Umbrella public C header
+    Core/include/module.modulemap                    Clang module map for Swift and C integration
+    Core/include/mph_core.h                          Core app context lifecycle
+    Core/include/mph_device.h                        Device model, categories, roles, metadata, and status
+    Core/include/mph_device_id.h                     Stable device identity and matching helpers
+    Core/include/mph_inventory.h                     Inventory scan API and combined device collection
+    Core/include/mph_profile.h                       Profile model and expected device selections
+    Core/include/mph_profile_store.h                 SQLite-backed profile persistence API
+    Core/include/mph_selection.h                     Active manual selection and desired defaults
+    Core/include/mph_reconcile.h                     Desired-vs-current reconciliation decisions
+    Core/include/mph_audio_watcher.h                 Audio watcher API for default-device protection
+    Core/include/mph_core_audio.h                    CoreAudio enumeration and default switching
+    Core/include/mph_swift_bridge.h                  C ABI consumed by Swift
+    Core/include/mph_db.h                            SQLite connection, schema, and migration helpers
+    Core/include/mph_display.h                       Display enumeration API
+    Core/include/mph_camera.h                        Camera enumeration API
+    Core/include/mph_usb.h                           USB and hub enumeration API
+    Core/include/mph_hid.h                           Keyboard, mouse, and trackpad enumeration API
+    Core/include/mph_bluetooth.h                     Bluetooth metadata API
+    Core/src/                                        C implementations for core logic and macOS adapters
+    Core/src/mph_core.c                              Core context wiring for database, inventory, and reconciliation
+    Core/src/mph_profile_store.c                     SQLite profile, known-device, alias, and active-state storage
+    Core/src/mph_reconcile.c                         Audio restore decisions and retry behavior
+    Core/src/mph_audio_watcher.c                     CoreAudio listeners and background watcher worker
+    Core/src/mph_swift_bridge.c                      Stable C functions used by the Swift application
+    Core/src/mph_camera_avfoundation.m               AVFoundation camera adapter
+    Core/src/mph_bluetooth_iobluetooth.m             IOBluetooth adapter
+    Core/tests/test_core_smoke.c                     End-to-end C smoke test for storage, inventory, and watcher flow
+    Core/fixtures/                                   Synthetic fixture snapshots for core test scenarios
+    Storage/migrations/001_initial_schema.sql        Initial SQLite schema for profiles and device memory
+    scripts/build_app.sh                             Debug app build command
+    scripts/build_release.sh                         Release app build command
+    scripts/run_app.sh                               Local app launch command
+    scripts/stop_app.sh                              Local app stop command
+    scripts/test_all.sh                              Full local test and build verification
+    scripts/package_app.sh                           Test, release build, dist copy, zip, and checksum command
+    docs/                                           Product notes, roadmap, privacy notes, and integration checks
+    assets/forreadme/                                README logo and walkthrough images
 
 ## Technology stack
 
