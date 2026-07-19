@@ -418,8 +418,8 @@ Commit: `test(core): cover profiles inventory and reconciliation`
 
 ## 26. Интеграционные проверки macOS
 
-- [ ] Проверить запуск app из Xcode.
-- [ ] Проверить standalone build.
+- [x] Проверить запуск app из Xcode.
+- [x] Проверить standalone build.
 - [ ] Проверить обнаружение встроенного микрофона и динамиков.
 - [ ] Проверить подключение USB-микрофона.
 - [ ] Проверить подключение Bluetooth-наушников.
@@ -430,6 +430,8 @@ Commit: `test(core): cover profiles inventory and reconciliation`
 - [ ] Проверить работу после sleep/wake.
 - [ ] Проверить работу после закрытия окна.
 - [ ] Проверить Quit из menu bar.
+
+Статус проверки: подтвержденная автоматизированная часть, source-level checks и список ручных hardware-сценариев записаны в `docs/MACOS_INTEGRATION_CHECKS.md`. Пункты с USB-микрофоном, Bluetooth-наушниками, sleep/wake, закрытием окна красной кнопкой и кликом Quit в menu bar требуют ручной проверки на реальном сетапе.
 
 Commit: `test(app): verify macOS device switching flows`
 
