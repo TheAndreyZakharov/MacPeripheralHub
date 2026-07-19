@@ -123,23 +123,81 @@ MacPeripheralHub хранит либо активный профиль, либо
 
     xattr -cr "/Applications/MacPeripheralHub.app"
 
-## Скриншоты приложения
+## Обзор работы приложения
 
-## Главные экраны
+Этот раздел показывает основные сценарии и места, где MacPeripheralHub управляет подключенными устройствами или объясняет их состояние.
 
-`Manual Control` — первый рабочий экран для мгновенного переключения активных устройств.
+### Manual Control
 
-Он показывает текущий default-микрофон, аудиовыход, system output, active mode и preferred camera selection.
+<div align="center">
+<img src="assets/forreadme/1.png" alt="Вкладка Manual Control" width="600"/>
+</div>
 
-`Devices` показывает полный inventory, сгруппированный по категориям устройств.
+`Manual Control` — первая вкладка и самый быстрый способ вручную задать текущие defaults.
 
-Он нужен, чтобы быстро понять, что подключено к Mac и какие metadata удалось определить.
+Здесь можно выбрать активный input, output, system output и preferred camera без изменения сохраненных профилей.
 
-`Profiles` хранит переиспользуемые комбинации устройств.
+После ручного переключения приложение сохраняет текущее состояние как manual control, пока не будет активирован другой профиль.
 
-Каждый профиль может хранить выбранные audio defaults, preferred camera, ожидаемую периферию и настройку, которая говорит MacPeripheralHub удерживать выбранные аудиоустройства активными.
+### Devices
 
-Пункт в menu bar показывает компактный current state, быстрое переключение audio, активацию профилей, действие открытия окна и `Quit`.
+<div align="center">
+<img src="assets/forreadme/2.png" alt="Вкладка Devices" width="600"/>
+</div>
+
+`Devices` показывает все подключенное железо, которое macOS отдает приложению: проводные, беспроводные, audio, video, USB, Bluetooth, display, HID, hub и unknown devices.
+
+Устройства сгруппированы по категориям, с раскрывающимися секциями и найденными metadata, чтобы было понятно, что это за устройство.
+
+Media-устройства можно проверить прямо здесь: микрофоны можно прослушать live, outputs могут проиграть звук Glass, а камеры можно открыть в preview.
+
+### Profiles
+
+<div align="center">
+<img src="assets/forreadme/3.png" alt="Вкладка Profiles" width="600"/>
+</div>
+
+`Profiles` нужен для переиспользуемых комбинаций устройств под разные задачи, места, звонки, стримы или рабочие сценарии.
+
+Профиль может хранить выбранный input, output, system output, preferred camera и ожидаемую периферию.
+
+Профили можно создавать, редактировать, удалять и быстро активировать, когда нужно переключить весь сетап.
+
+### Settings
+
+<div align="center">
+<img src="assets/forreadme/4.png" alt="Вкладка Settings" width="600"/>
+</div>
+
+`Settings` содержит настройки приложения и управление системными permissions.
+
+Переключатель темы может автоматически следовать macOS или принудительно включать light или dark mode для приложения.
+
+В этом же экране можно повторно запросить доступ к микрофону и камере, открыть Privacy Settings и включить или выключить launch at login.
+
+### Dark Appearance
+
+<div align="center">
+<img src="assets/forreadme/5.png" alt="Темная тема" width="600"/>
+</div>
+
+Темная тема сохраняет тот же workflow и layout, но использует системные dark colors macOS.
+
+Ее можно выбрать вручную в `Settings` или наследовать от системы, когда appearance выставлен в `System`.
+
+Так приложение удобно оставлять запущенным, пока оно следит за audio defaults в фоне.
+
+### Menu Bar
+
+<div align="center">
+<img src="assets/forreadme/6.jpeg" alt="Пункт menu bar" width="600"/>
+</div>
+
+Пункт в menu bar оставляет MacPeripheralHub доступным после закрытия главного окна.
+
+Он показывает compact status, active defaults, quick switching, активацию профилей, команду повторного открытия окна и `Quit`.
+
+Это основной фоновый control surface, когда приложение работает без окна в Dock.
 
 ## Ограничения macOS
 

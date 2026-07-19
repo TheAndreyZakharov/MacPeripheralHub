@@ -123,23 +123,81 @@ or, after moving it to Applications:
 
     xattr -cr "/Applications/MacPeripheralHub.app"
 
-## Application screenshots
+## Application walkthrough
 
-## Main views
+This section shows the main workflows and the places where MacPeripheralHub controls or explains connected devices.
 
-`Manual Control` is the first working view for switching active devices immediately.
+### Manual Control
 
-It shows the current default microphone, audio output, system output, active mode, and preferred camera selection.
+<div align="center">
+<img src="assets/forreadme/1.png" alt="Manual Control tab" width="600"/>
+</div>
 
-`Devices` shows the full inventory grouped by device category.
+`Manual Control` is the first tab and the fastest place to set current defaults manually.
 
-It is meant for quickly understanding what is connected to the Mac and which metadata was detected.
+It lets the user choose the active input, output, system output, and preferred camera without changing saved profiles.
 
-`Profiles` stores reusable combinations of devices.
+After a manual switch, the app keeps the current state as manual control until another profile is activated.
 
-Each profile can keep selected audio defaults, preferred camera, expected peripherals, and the setting that tells MacPeripheralHub to keep the selected audio devices active.
+### Devices
 
-The menu bar item exposes compact current state, quick audio switching, profile activation, an action to open the window, and `Quit`.
+<div align="center">
+<img src="assets/forreadme/2.png" alt="Devices tab" width="600"/>
+</div>
+
+`Devices` shows all connected hardware that macOS exposes to the app, including wired, wireless, audio, video, USB, Bluetooth, display, HID, hub, and unknown devices.
+
+Devices are grouped by category, with expandable sections and detected metadata for understanding what each device is.
+
+Media devices can be checked directly: microphones can be monitored live, outputs can play the Glass sound, and cameras can be previewed.
+
+### Profiles
+
+<div align="center">
+<img src="assets/forreadme/3.png" alt="Profiles tab" width="600"/>
+</div>
+
+`Profiles` is for reusable device combinations for different tasks, rooms, calls, streams, or work scenarios.
+
+A profile can store selected input, output, system output, preferred camera, and expected peripherals.
+
+Profiles can be created, edited, deleted, and activated quickly when the user needs to switch the whole setup.
+
+### Settings
+
+<div align="center">
+<img src="assets/forreadme/4.png" alt="Settings tab" width="600"/>
+</div>
+
+`Settings` contains application-level options and system permission controls.
+
+The appearance selector can follow macOS automatically or force light or dark mode for the app.
+
+The same view can request microphone and camera access again, open Privacy Settings, and enable or disable launch at login.
+
+### Dark Appearance
+
+<div align="center">
+<img src="assets/forreadme/5.png" alt="Dark appearance" width="600"/>
+</div>
+
+The dark appearance keeps the same workflow and layout while using macOS dark colors.
+
+It can be selected manually in `Settings` or inherited from the system when appearance is set to `System`.
+
+This makes the app comfortable to leave running while it watches audio defaults in the background.
+
+### Menu Bar
+
+<div align="center">
+<img src="assets/forreadme/6.jpeg" alt="Menu bar item" width="600"/>
+</div>
+
+The menu bar item keeps MacPeripheralHub available after the main window is closed.
+
+It shows compact status, active defaults, quick switching, profile activation, a command to reopen the window, and `Quit`.
+
+This is the main background control surface when the app is running without a Dock window.
 
 ## macOS limitations
 
