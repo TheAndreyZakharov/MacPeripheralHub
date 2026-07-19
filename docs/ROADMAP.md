@@ -517,3 +517,21 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `chore(scripts): add build and test commands`
 - [x] `docs: document MacPeripheralHub usage and architecture`
 - [x] `release: prepare MacPeripheralHub 1.0.0`
+
+## 31. Финальная доработка: проверки устройств из Devices
+
+- [x] Добавить проверку аудиовыходов через системный звук `Glass`.
+- [x] Добавить mono-режим для проверки аудиовыхода.
+- [x] Добавить live-прослушивание микрофона.
+- [x] Добавить meters уровней каналов микрофона.
+- [x] Добавить mono-режим для проверки микрофона.
+- [x] Добавить preview-окно для камер.
+- [x] Встроить проверки гармонично в строки устройств во вкладке `Devices`.
+- [x] Добавить в Settings статусы camera/microphone permissions, повторный запрос и переход в macOS Privacy Settings.
+- [x] Подписывать app bundle с camera/audio-input entitlements, чтобы macOS показывала приложение в Privacy Settings.
+- [x] Исправить initial render микрофонных meters: каналы видны сразу при открытии live monitoring.
+- [x] Обновить privacy usage descriptions для микрофона и камеры.
+- [x] Описать проверки устройств в `README.md` и `README_RU.md`.
+- [x] Пересобрать release artifact и checksum.
+
+Commit: `feat(ui): add media device checks`

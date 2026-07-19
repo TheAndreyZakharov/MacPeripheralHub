@@ -260,6 +260,7 @@ final class PeripheralCoreBridge: @unchecked Sendable {
             isDefaultInput: device.audio.is_default_input,
             isDefaultOutput: device.audio.is_default_output,
             isDefaultSystemOutput: device.audio.is_default_system_output,
+            cameraUniqueID: optionalString(mph_swift_device_camera_unique_id_cstr(devicePointer)),
             detailLines: makeDetailLines(for: device, pointer: devicePointer)
         )
     }

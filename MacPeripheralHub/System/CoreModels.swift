@@ -280,6 +280,7 @@ struct DeviceViewModel: Identifiable, Equatable, Sendable {
     let isDefaultInput: Bool
     let isDefaultOutput: Bool
     let isDefaultSystemOutput: Bool
+    let cameraUniqueID: String?
     let detailLines: [String]
 
     var subtitle: String {

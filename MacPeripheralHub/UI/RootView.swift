@@ -53,6 +53,12 @@ private final class FlippedDocumentView: NSView {
     }
 }
 
+private enum DeviceTestAction {
+    case playGlass
+    case listenMicrophone
+    case previewCamera
+}
+
 final class RootView: NSView {
     private struct Snapshot {
         var inventory: [DeviceViewModel]
@@ -96,11 +102,19 @@ final class RootView: NSView {
     private let deviceSummaryLabel = NSTextField(labelWithString: "")
     private let deviceRefreshButton = NSButton()
     private let contentStack = NSStackView()
+    private let mediaTests = MediaTestController()
     private var deviceFilterText = ""
     private var collapsedDeviceCategories = Set<DeviceCategory>()
     private var hideOfflineDevices = false
     private var deviceCategoryTags: [Int: DeviceCategory] = [:]
     private var nextDeviceCategoryTag = 3000
+    private var deviceTestActions: [Int: DeviceTestAction] = [:]
+    private var deviceTestDeviceIDs: [Int: String] = [:]
+    private var deviceMonoDeviceIDs: [Int: String] = [:]
+    private var deviceMonoIsMicrophone: [Int: Bool] = [:]
+    private var monoAudioOutputDeviceIDs = Set<String>()
+    private var monoMicrophoneDeviceIDs = Set<String>()
+    private var nextDeviceTestTag = 4000
     private var profileDraftID: String?
     private var profileDraftName = ""
     private var profileDraftRoleDeviceIDs: [DeviceRole: String] = [:]
@@ -429,6 +443,28 @@ final class RootView: NSView {
         appState.setAppearancePreference(preference)
     }
 
+    @objc private func requestMicrophonePermission() {
+        requestMediaPermission(.microphone)
+    }
+
+    @objc private func requestCameraPermission() {
+        requestMediaPermission(.camera)
+    }
+
+    @objc private func openMicrophonePrivacySettings() {
+        mediaTests.openPrivacySettings(for: .microphone)
+    }
+
+    @objc private func openCameraPrivacySettings() {
+        mediaTests.openPrivacySettings(for: .camera)
+    }
+
+    private func requestMediaPermission(_ kind: MediaPermissionKind) {
+        mediaTests.requestPermission(for: kind) { [weak self] _ in
+            self?.render()
+        }
+    }
+
     @objc private func deviceFilterChanged(_ sender: NSSearchField) {
         deviceFilterText = sender.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         render()
@@ -460,6 +496,61 @@ final class RootView: NSView {
             collapsedDeviceCategories.insert(category)
         }
         render()
+    }
+
+    @objc private func deviceMonoChanged(_ sender: NSButton) {
+        guard let deviceID = deviceMonoDeviceIDs[sender.tag] else {
+            return
+        }
+
+        if deviceMonoIsMicrophone[sender.tag] == true {
+            if sender.state == .on {
+                monoMicrophoneDeviceIDs.insert(deviceID)
+            } else {
+                monoMicrophoneDeviceIDs.remove(deviceID)
+            }
+        } else {
+            if sender.state == .on {
+                monoAudioOutputDeviceIDs.insert(deviceID)
+            } else {
+                monoAudioOutputDeviceIDs.remove(deviceID)
+            }
+        }
+    }
+
+    @objc private func runDeviceTest(_ sender: NSButton) {
+        guard let action = deviceTestActions[sender.tag],
+              let deviceID = deviceTestDeviceIDs[sender.tag],
+              let device = device(namedBy: deviceID),
+              device.isConnected else {
+            return
+        }
+
+        switch action {
+        case .playGlass:
+            let role: DeviceRole = device.category == .audioSystemOutput ? .systemOutput : .defaultOutput
+            appState.setManualDevice(device.id, for: role)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) { [weak self] in
+                guard let self else {
+                    return
+                }
+                do {
+                    try self.mediaTests.playGlass(mono: self.monoAudioOutputDeviceIDs.contains(device.id))
+                } catch {
+                    self.appState.reportUserActionError(error, operation: "Play Glass sound")
+                }
+            }
+        case .listenMicrophone:
+            appState.setManualDevice(device.id, for: .defaultInput)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) { [weak self] in
+                self?.mediaTests.showMicrophoneMonitor(
+                    device: device,
+                    mono: self?.monoMicrophoneDeviceIDs.contains(device.id) == true
+                )
+            }
+        case .previewCamera:
+            mediaTests.showCameraPreview(device: device)
+        }
     }
 
     private func render() {
@@ -686,6 +777,9 @@ final class RootView: NSView {
         [
             makeSectionHeader(title: "Appearance", count: 1),
             makeAppearanceSettingsRow(),
+            makeSectionHeader(title: "Permissions", count: 2),
+            makePermissionSettingsRow(for: .microphone),
+            makePermissionSettingsRow(for: .camera),
             makeSectionHeader(title: "Startup", count: 1),
             makeLoginItemSettingsRow()
         ]
@@ -719,6 +813,47 @@ final class RootView: NSView {
         textStack.spacing = 3
 
         let row = NSStackView(views: [textStack, NSView(), picker])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        row.wantsLayer = true
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
+        row.layer?.cornerRadius = 6
+        return row
+    }
+
+    private func makePermissionSettingsRow(for kind: MediaPermissionKind) -> NSView {
+        let status = mediaTests.permissionStatus(for: kind)
+        let title = makeLabel(kind.title, size: 13, weight: .medium, color: .labelColor)
+        let detail = makeLabel(status.detail, size: 12, weight: .regular, color: .secondaryLabelColor)
+        detail.maximumNumberOfLines = 2
+
+        let statusLabel = makeStatusLabel(status.title)
+        let requestButton = makeActionButton(
+            title: "Request",
+            symbolName: "hand.raised",
+            action: kind == .microphone ? #selector(requestMicrophonePermission) : #selector(requestCameraPermission)
+        )
+        requestButton.isEnabled = status != .allowed && status != .restricted
+
+        let settingsButton = makeActionButton(
+            title: "Privacy Settings",
+            symbolName: "gearshape",
+            action: kind == .microphone ? #selector(openMicrophonePrivacySettings) : #selector(openCameraPrivacySettings)
+        )
+
+        let textStack = NSStackView(views: [title, detail])
+        textStack.orientation = .vertical
+        textStack.alignment = .leading
+        textStack.spacing = 3
+
+        let actions = NSStackView(views: [statusLabel, requestButton, settingsButton])
+        actions.orientation = .horizontal
+        actions.alignment = .centerY
+        actions.spacing = 8
+
+        let row = NSStackView(views: [textStack, NSView(), actions])
         row.orientation = .horizontal
         row.alignment = .centerY
         row.spacing = 12
@@ -774,6 +909,11 @@ final class RootView: NSView {
     private func makeDeviceViews() -> [NSView] {
         deviceCategoryTags.removeAll()
         nextDeviceCategoryTag = 3000
+        deviceTestActions.removeAll()
+        deviceTestDeviceIDs.removeAll()
+        deviceMonoDeviceIDs.removeAll()
+        deviceMonoIsMicrophone.removeAll()
+        nextDeviceTestTag = 4000
 
         let searchedDevices = searchedInventory()
         let filteredDevices = filteredInventory()
@@ -1359,7 +1499,92 @@ final class RootView: NSView {
         stack.orientation = .vertical
         stack.alignment = .trailing
         stack.spacing = 4
+
+        if let testControls = makeDeviceTestControls(for: device) {
+            stack.setCustomSpacing(8, after: labels.last ?? testControls)
+            stack.addArrangedSubview(testControls)
+        }
+
         return stack
+    }
+
+    private func makeDeviceTestControls(for device: DeviceViewModel) -> NSView? {
+        guard device.isConnected else {
+            return nil
+        }
+
+        switch device.category {
+        case .audioOutput, .audioSystemOutput:
+            let mono = makeDeviceMonoButton(
+                deviceID: device.id,
+                isMicrophone: false,
+                isEnabled: monoAudioOutputDeviceIDs.contains(device.id)
+            )
+            let test = makeDeviceTestButton(
+                title: "Glass",
+                symbolName: "speaker.wave.2.fill",
+                action: .playGlass,
+                deviceID: device.id
+            )
+            return makeDeviceTestControlRow([mono, test])
+        case .audioInput:
+            let mono = makeDeviceMonoButton(
+                deviceID: device.id,
+                isMicrophone: true,
+                isEnabled: monoMicrophoneDeviceIDs.contains(device.id)
+            )
+            let test = makeDeviceTestButton(
+                title: "Listen",
+                symbolName: "waveform",
+                action: .listenMicrophone,
+                deviceID: device.id
+            )
+            return makeDeviceTestControlRow([mono, test])
+        case .camera:
+            let test = makeDeviceTestButton(
+                title: "Preview",
+                symbolName: "video.fill",
+                action: .previewCamera,
+                deviceID: device.id
+            )
+            return makeDeviceTestControlRow([test])
+        default:
+            return nil
+        }
+    }
+
+    private func makeDeviceTestControlRow(_ views: [NSView]) -> NSStackView {
+        let row = NSStackView(views: views)
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 6
+        return row
+    }
+
+    private func makeDeviceMonoButton(deviceID: String, isMicrophone: Bool, isEnabled: Bool) -> NSButton {
+        let button = NSButton(checkboxWithTitle: "Mono", target: self, action: #selector(deviceMonoChanged(_:)))
+        button.state = isEnabled ? .on : .off
+        button.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+        button.toolTip = isMicrophone ? "Monitor microphone as mono" : "Play test sound as mono"
+        button.tag = nextDeviceTestTag
+        deviceMonoDeviceIDs[button.tag] = deviceID
+        deviceMonoIsMicrophone[button.tag] = isMicrophone
+        nextDeviceTestTag += 1
+        return button
+    }
+
+    private func makeDeviceTestButton(
+        title: String,
+        symbolName: String,
+        action: DeviceTestAction,
+        deviceID: String
+    ) -> NSButton {
+        let button = makeActionButton(title: title, symbolName: symbolName, action: #selector(runDeviceTest(_:)))
+        button.tag = nextDeviceTestTag
+        deviceTestActions[button.tag] = action
+        deviceTestDeviceIDs[button.tag] = deviceID
+        nextDeviceTestTag += 1
+        return button
     }
 
     private func makeDeviceCategoryHeader(

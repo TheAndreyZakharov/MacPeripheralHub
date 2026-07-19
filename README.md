@@ -66,6 +66,24 @@ The app uses debounce and retry behavior so it does not fight macOS too aggressi
 
 Manual switching does not overwrite saved profiles. It moves the active state into `Manual Control`, so the user can change devices for the moment without destroying a saved setup.
 
+## Device checks
+
+The `Devices` view includes built-in checks for media peripherals.
+
+For headphones, speakers, and audio outputs, press `Glass` to play the macOS Glass system sound through the selected output.
+
+The audio output check has a `Mono` option for centered mono playback.
+
+For microphones, press `Listen` to open live monitoring with per-channel level meters.
+
+The microphone monitor also has a `Mono` option for mono monitoring and mono level display.
+
+For cameras, press `Preview` to open a medium preview window for checking framing, focus, and exposure.
+
+Microphone and camera checks request macOS permissions only when the user starts the check.
+
+`Settings` shows microphone and camera permission status with actions to request access again or open the exact macOS Privacy Settings page.
+
 ## Installation from GitHub Release
 
 The ready-to-use macOS application is intended to be available in the repository's GitHub Releases section.
@@ -235,6 +253,8 @@ The app does not need network access for its core workflow.
 The app may ask macOS for camera or microphone-related permissions only where system APIs require them.
 
 If permission is denied, the app should keep working and show whatever device information macOS still allows.
+
+The app bundle is signed with camera and audio-input entitlements so macOS can show MacPeripheralHub in Privacy Settings.
 
 ## Version status
 

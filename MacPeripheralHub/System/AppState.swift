@@ -216,6 +216,10 @@ final class AppState: ObservableObject {
         presentError(error, operation: operation)
     }
 
+    func reportUserActionError(_ error: Error, operation: String) {
+        presentError(error, operation: operation)
+    }
+
     private func upsertProfile(_ profile: ProfileViewModel) {
         if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
             profiles[index] = profile
