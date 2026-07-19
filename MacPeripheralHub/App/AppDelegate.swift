@@ -7,22 +7,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusMenuController: StatusMenuController?
     private var dockProfileActions: [Int: String] = [:]
     private var nextDockProfileTag = 4000
+    private let didLaunchAtLogin = CommandLine.arguments.contains("--launch-at-login")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         writeLaunchDiagnostic("applicationDidFinishLaunching")
         configureApplicationIcon()
-        NSApp.setActivationPolicy(.regular)
+        NSApp.setActivationPolicy(didLaunchAtLogin ? .accessory : .regular)
         configureMainMenu()
         statusMenuController = StatusMenuController(appState: appState) { [weak self] in
             self?.showMainWindow(nil)
         }
         writeLaunchDiagnostic("statusItemConfigured")
-        showMainWindow(nil)
-        writeLaunchDiagnostic("mainWindowRequested")
+
+        if didLaunchAtLogin {
+            writeLaunchDiagnostic("loginLaunchHidden")
+        } else {
+            showMainWindow(nil)
+            writeLaunchDiagnostic("mainWindowRequested")
+        }
+
         appState.startBackgroundServices()
         appState.refreshAll()
-        scheduleStartupUIFailsafe()
-        scheduleLaunchAtLoginPrompt()
+
+        if !didLaunchAtLogin {
+            scheduleStartupUIFailsafe()
+            scheduleLaunchAtLoginPrompt()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -361,7 +361,7 @@ enum LoginItemStatus: String, Equatable, Sendable {
         case .requiresApproval:
             return "Needs Approval"
         case .notFound:
-            return "Unavailable"
+            return "Off"
         }
     }
 
@@ -370,11 +370,11 @@ enum LoginItemStatus: String, Equatable, Sendable {
         case .notRegistered:
             return "MacPeripheralHub will not start automatically when you log in."
         case .enabled:
-            return "MacPeripheralHub will start automatically when you log in."
+            return "MacPeripheralHub will start in the menu bar when you log in."
         case .requiresApproval:
             return "Allow MacPeripheralHub in System Settings to start at login."
         case .notFound:
-            return "macOS could not find this app as a login item."
+            return "MacPeripheralHub will not start automatically when you log in."
         }
     }
 }
@@ -389,7 +389,7 @@ struct LoginItemViewModel: Equatable, Sendable {
     }
 
     var canToggle: Bool {
-        status != .notFound
+        true
     }
 }
 

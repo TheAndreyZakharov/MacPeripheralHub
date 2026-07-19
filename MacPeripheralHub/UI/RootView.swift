@@ -736,7 +736,7 @@ final class RootView: NSView {
 
         let status = makeStatusLabel(snapshot.loginItem.status.title)
         let toggle = NSButton(
-            checkboxWithTitle: "",
+            checkboxWithTitle: "Enabled",
             target: self,
             action: #selector(loginItemToggleChanged(_:))
         )
