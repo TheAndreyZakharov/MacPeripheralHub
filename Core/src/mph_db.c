@@ -268,6 +268,7 @@ mph_status_t mph_db_open(mph_db_t **out_db, const char *path) {
         return MPH_STATUS_INTERNAL_ERROR;
     }
 
+    sqlite3_busy_timeout(db->connection, 5000);
     execute_sql(db, "PRAGMA foreign_keys = ON;");
     *out_db = db;
     return MPH_STATUS_OK;

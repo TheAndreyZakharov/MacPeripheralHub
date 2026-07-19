@@ -47,6 +47,12 @@ private enum AppSection: Int, CaseIterable {
     }
 }
 
+private final class FlippedDocumentView: NSView {
+    override var isFlipped: Bool {
+        true
+    }
+}
+
 final class RootView: NSView {
     private struct Snapshot {
         var inventory: [DeviceViewModel]
@@ -83,10 +89,16 @@ final class RootView: NSView {
     private let errorLabel = NSTextField(labelWithString: "")
     private let deviceToolbar = NSStackView()
     private let deviceSearchField = NSSearchField()
+    private let deviceExpandAllButton = NSButton(checkboxWithTitle: "Expand all", target: nil, action: nil)
+    private let deviceHideOfflineButton = NSButton(checkboxWithTitle: "Hide offline", target: nil, action: nil)
     private let deviceSummaryLabel = NSTextField(labelWithString: "")
     private let deviceRefreshButton = NSButton()
     private let contentStack = NSStackView()
     private var deviceFilterText = ""
+    private var collapsedDeviceCategories = Set<DeviceCategory>()
+    private var hideOfflineDevices = false
+    private var deviceCategoryTags: [Int: DeviceCategory] = [:]
+    private var nextDeviceCategoryTag = 3000
     private var profileDraftID: String?
     private var profileDraftName = ""
     private var profileDraftRoleDeviceIDs: [DeviceRole: String] = [:]
@@ -112,9 +124,15 @@ final class RootView: NSView {
         fatalError("RootView does not support storyboard initialization.")
     }
 
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        updateDynamicColors()
+        render()
+    }
+
     private func configureView() {
         wantsLayer = true
-        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        updateDynamicColors()
 
         titleLabel.font = NSFont.systemFont(ofSize: 24, weight: .semibold)
         titleLabel.textColor = .labelColor
@@ -135,7 +153,7 @@ final class RootView: NSView {
         loadingIndicator.isDisplayedWhenStopped = false
 
         errorBanner.wantsLayer = true
-        errorBanner.layer?.backgroundColor = NSColor.systemRed.withAlphaComponent(0.08).cgColor
+        errorBanner.layer?.backgroundColor = dynamicCGColor(NSColor.systemRed.withAlphaComponent(0.08))
         errorBanner.layer?.cornerRadius = 6
         errorBanner.isHidden = true
 
@@ -149,6 +167,16 @@ final class RootView: NSView {
         deviceSearchField.sendsSearchStringImmediately = true
         deviceSearchField.translatesAutoresizingMaskIntoConstraints = false
         deviceSearchField.widthAnchor.constraint(greaterThanOrEqualToConstant: 240).isActive = true
+
+        deviceExpandAllButton.target = self
+        deviceExpandAllButton.action = #selector(expandAllDeviceCategoriesChanged(_:))
+        deviceExpandAllButton.toolTip = "Expand or collapse all device categories"
+        deviceExpandAllButton.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+
+        deviceHideOfflineButton.target = self
+        deviceHideOfflineButton.action = #selector(hideOfflineDevicesChanged(_:))
+        deviceHideOfflineButton.toolTip = "Hide remembered devices that are currently offline"
+        deviceHideOfflineButton.font = NSFont.systemFont(ofSize: 12, weight: .regular)
 
         deviceSummaryLabel.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         deviceSummaryLabel.textColor = .secondaryLabelColor
@@ -165,9 +193,11 @@ final class RootView: NSView {
         deviceToolbar.spacing = 10
         deviceToolbar.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         deviceToolbar.wantsLayer = true
-        deviceToolbar.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        deviceToolbar.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         deviceToolbar.layer?.cornerRadius = 6
         deviceToolbar.addArrangedSubview(deviceSearchField)
+        deviceToolbar.addArrangedSubview(deviceExpandAllButton)
+        deviceToolbar.addArrangedSubview(deviceHideOfflineButton)
         deviceToolbar.addArrangedSubview(NSView())
         deviceToolbar.addArrangedSubview(deviceSummaryLabel)
         deviceToolbar.addArrangedSubview(deviceRefreshButton)
@@ -183,6 +213,21 @@ final class RootView: NSView {
         contentStack.edgeInsets = NSEdgeInsets(top: 16, left: 22, bottom: 24, right: 22)
     }
 
+    private func updateDynamicColors() {
+        layer?.backgroundColor = dynamicCGColor(.windowBackgroundColor)
+        sidebarView.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
+        deviceToolbar.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
+        errorBanner.layer?.backgroundColor = dynamicCGColor(NSColor.systemRed.withAlphaComponent(0.08))
+    }
+
+    private func dynamicCGColor(_ color: NSColor) -> CGColor {
+        var resolvedColor = color.cgColor
+        effectiveAppearance.performAsCurrentDrawingAppearance {
+            resolvedColor = color.cgColor
+        }
+        return resolvedColor
+    }
+
     private func configureLayout() {
         let rootStack = NSStackView()
         rootStack.orientation = .horizontal
@@ -192,7 +237,7 @@ final class RootView: NSView {
         addSubview(rootStack)
 
         sidebarView.wantsLayer = true
-        sidebarView.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        sidebarView.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         sidebarView.addSubview(sidebarStack)
         rootStack.addArrangedSubview(sidebarView)
 
@@ -269,7 +314,7 @@ final class RootView: NSView {
     }
 
     private func makeScrollView() -> NSScrollView {
-        let documentView = NSView()
+        let documentView = FlippedDocumentView()
         documentView.translatesAutoresizingMaskIntoConstraints = false
         documentView.addSubview(contentStack)
 
@@ -285,7 +330,9 @@ final class RootView: NSView {
             contentStack.trailingAnchor.constraint(equalTo: documentView.trailingAnchor),
             contentStack.topAnchor.constraint(equalTo: documentView.topAnchor),
             contentStack.bottomAnchor.constraint(lessThanOrEqualTo: documentView.bottomAnchor),
-            contentStack.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor)
+            contentStack.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor),
+            documentView.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor),
+            documentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.contentView.heightAnchor)
         ])
 
         return scrollView
@@ -368,7 +415,36 @@ final class RootView: NSView {
         render()
     }
 
+    @objc private func expandAllDeviceCategoriesChanged(_ sender: NSButton) {
+        let categoriesWithDevices = categoriesVisibleInDeviceList()
+        if sender.state == .on {
+            collapsedDeviceCategories.subtract(categoriesWithDevices)
+        } else {
+            collapsedDeviceCategories.formUnion(categoriesWithDevices)
+        }
+        render()
+    }
+
+    @objc private func hideOfflineDevicesChanged(_ sender: NSButton) {
+        hideOfflineDevices = sender.state == .on
+        render()
+    }
+
+    @objc private func toggleDeviceCategory(_ sender: NSButton) {
+        guard let category = deviceCategoryTags[sender.tag] else {
+            return
+        }
+
+        if collapsedDeviceCategories.contains(category) {
+            collapsedDeviceCategories.remove(category)
+        } else {
+            collapsedDeviceCategories.insert(category)
+        }
+        render()
+    }
+
     private func render() {
+        updateDynamicColors()
         titleLabel.stringValue = selectedSection.title
         subtitleLabel.stringValue = selectedSection.subtitle
         refreshButton.isEnabled = !snapshot.isRefreshingInventory
@@ -385,8 +461,8 @@ final class RootView: NSView {
             button.state = isSelected ? .on : .off
             button.contentTintColor = isSelected ? .controlAccentColor : .labelColor
             button.layer?.backgroundColor = isSelected
-                ? NSColor.controlAccentColor.withAlphaComponent(0.12).cgColor
-                : NSColor.clear.cgColor
+                ? dynamicCGColor(NSColor.controlAccentColor.withAlphaComponent(0.12))
+                : dynamicCGColor(.clear)
         }
 
         renderError()
@@ -532,7 +608,7 @@ final class RootView: NSView {
         row.spacing = 12
         row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         row.wantsLayer = true
-        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         row.layer?.cornerRadius = 6
         return row
     }
@@ -589,9 +665,33 @@ final class RootView: NSView {
 
     private func makeSettingsViews() -> [NSView] {
         [
+            makeSectionHeader(title: "Appearance", count: 1),
+            makeAppearanceSettingsRow(),
             makeSectionHeader(title: "Startup", count: 1),
             makeLoginItemSettingsRow()
         ]
+    }
+
+    private func makeAppearanceSettingsRow() -> NSView {
+        let title = makeLabel("Theme", size: 13, weight: .medium, color: .labelColor)
+        let detail = makeLabel("Follows macOS system appearance", size: 12, weight: .regular, color: .secondaryLabelColor)
+        detail.maximumNumberOfLines = 2
+
+        let status = makeStatusLabel("System")
+        let textStack = NSStackView(views: [title, detail])
+        textStack.orientation = .vertical
+        textStack.alignment = .leading
+        textStack.spacing = 3
+
+        let row = NSStackView(views: [textStack, NSView(), status])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 12
+        row.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        row.wantsLayer = true
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
+        row.layer?.cornerRadius = 6
+        return row
     }
 
     private func makeLoginItemSettingsRow() -> NSView {
@@ -631,14 +731,25 @@ final class RootView: NSView {
         row.spacing = 12
         row.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
         row.wantsLayer = true
-        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         row.layer?.cornerRadius = 6
         return row
     }
 
     private func makeDeviceViews() -> [NSView] {
+        deviceCategoryTags.removeAll()
+        nextDeviceCategoryTag = 3000
+
+        let searchedDevices = searchedInventory()
         let filteredDevices = filteredInventory()
-        var views: [NSView] = [makeDeviceToolbar(total: snapshot.inventory.count, visible: filteredDevices.count)]
+        var views: [NSView] = [
+            makeDeviceToolbar(
+                total: snapshot.inventory.count,
+                searched: searchedDevices.count,
+                visible: filteredDevices.count,
+                hiddenOffline: hideOfflineDevices ? searchedDevices.filter { !$0.isConnected }.count : 0
+            )
+        ]
 
         if snapshot.isRefreshingInventory && snapshot.inventory.isEmpty {
             views.append(
@@ -663,10 +774,13 @@ final class RootView: NSView {
         }
 
         if filteredDevices.isEmpty {
+            let detail = hideOfflineDevices
+                ? "No online devices match the current device filters."
+                : "Nothing matches \"\(deviceFilterText)\"."
             views.append(
                 makeStateView(
                     title: "No matching devices",
-                    detail: "Nothing matches \"\(deviceFilterText)\".",
+                    detail: detail,
                     symbolName: "magnifyingglass"
                 )
             )
@@ -674,28 +788,48 @@ final class RootView: NSView {
         }
 
         for category in DeviceCategory.allCases {
-            let devices = filteredDevices.filter { $0.category == category }
-            guard !devices.isEmpty else {
+            let searchedCategoryDevices = searchedDevices.filter { $0.category == category }
+            let visibleCategoryDevices = filteredDevices.filter { $0.category == category }
+            guard !visibleCategoryDevices.isEmpty else {
                 continue
             }
 
-            views.append(makeSectionHeader(title: category.title, count: devices.count))
-            for device in devices {
+            views.append(
+                makeDeviceCategoryHeader(
+                    category: category,
+                    visibleCount: visibleCategoryDevices.count,
+                    matchingCount: searchedCategoryDevices.count,
+                    hiddenOfflineCount: hideOfflineDevices ? searchedCategoryDevices.filter { !$0.isConnected }.count : 0
+                )
+            )
+
+            guard !collapsedDeviceCategories.contains(category) else {
+                continue
+            }
+
+            for device in visibleCategoryDevices {
                 views.append(makeDeviceRow(device))
             }
         }
         return views
     }
 
-    private func makeDeviceToolbar(total: Int, visible: Int) -> NSView {
+    private func makeDeviceToolbar(total: Int, searched: Int, visible: Int, hiddenOffline: Int) -> NSView {
         if deviceSearchField.stringValue != deviceFilterText {
             deviceSearchField.stringValue = deviceFilterText
         }
 
-        if deviceFilterText.isEmpty {
+        deviceHideOfflineButton.state = hideOfflineDevices ? .on : .off
+        deviceExpandAllButton.state = categoriesVisibleInDeviceList().allSatisfy {
+            !collapsedDeviceCategories.contains($0)
+        } ? .on : .off
+
+        if deviceFilterText.isEmpty && hiddenOffline == 0 {
             deviceSummaryLabel.stringValue = "\(total) devices"
+        } else if hiddenOffline > 0 {
+            deviceSummaryLabel.stringValue = "\(visible) shown / \(hiddenOffline) offline hidden / \(total) total"
         } else {
-            deviceSummaryLabel.stringValue = "\(visible) of \(total) devices"
+            deviceSummaryLabel.stringValue = "\(visible) shown / \(searched) matching / \(total) total"
         }
 
         return deviceToolbar
@@ -742,7 +876,7 @@ final class RootView: NSView {
         row.spacing = 12
         row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         row.wantsLayer = true
-        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         row.layer?.cornerRadius = 6
         return row
     }
@@ -790,7 +924,7 @@ final class RootView: NSView {
         stack.spacing = 10
         stack.edgeInsets = NSEdgeInsets(top: 14, left: 12, bottom: 14, right: 12)
         stack.wantsLayer = true
-        stack.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        stack.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         stack.layer?.cornerRadius = 6
         return stack
     }
@@ -881,8 +1015,8 @@ final class RootView: NSView {
         row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         row.wantsLayer = true
         row.layer?.backgroundColor = selected
-            ? NSColor.controlAccentColor.withAlphaComponent(0.12).cgColor
-            : NSColor.controlBackgroundColor.cgColor
+            ? dynamicCGColor(NSColor.controlAccentColor.withAlphaComponent(0.12))
+            : dynamicCGColor(.controlBackgroundColor)
         row.layer?.cornerRadius = 6
         return row
     }
@@ -1169,7 +1303,7 @@ final class RootView: NSView {
         row.spacing = 12
         row.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         row.wantsLayer = true
-        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         row.layer?.cornerRadius = 6
         return row
     }
@@ -1193,6 +1327,45 @@ final class RootView: NSView {
         return stack
     }
 
+    private func makeDeviceCategoryHeader(
+        category: DeviceCategory,
+        visibleCount: Int,
+        matchingCount: Int,
+        hiddenOfflineCount: Int
+    ) -> NSView {
+        let isCollapsed = collapsedDeviceCategories.contains(category)
+        let button = NSButton(title: category.title, target: self, action: #selector(toggleDeviceCategory(_:)))
+        button.image = NSImage(
+            systemSymbolName: isCollapsed ? "chevron.right" : "chevron.down",
+            accessibilityDescription: isCollapsed ? "Expand" : "Collapse"
+        )
+        button.imagePosition = .imageLeading
+        button.alignment = .left
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
+        button.font = NSFont.systemFont(ofSize: 15, weight: .semibold)
+        button.contentTintColor = .labelColor
+        button.toolTip = isCollapsed ? "Expand \(category.title)" : "Collapse \(category.title)"
+        button.tag = nextDeviceCategoryTag
+        deviceCategoryTags[button.tag] = category
+        nextDeviceCategoryTag += 1
+
+        var statusText = "\(visibleCount)"
+        if hiddenOfflineCount > 0 {
+            statusText = "\(visibleCount) shown / \(hiddenOfflineCount) hidden"
+        } else if visibleCount != matchingCount {
+            statusText = "\(visibleCount) shown / \(matchingCount) matching"
+        }
+
+        let countLabel = makeStatusLabel(statusText)
+        let row = NSStackView(views: [button, NSView(), countLabel])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 10
+        row.edgeInsets = NSEdgeInsets(top: 10, left: 0, bottom: 2, right: 0)
+        return row
+    }
+
     private func makeMetricRow(title: String, value: String, detail: String) -> NSView {
         let titleLabel = makeLabel(title, size: 13, weight: .medium, color: .secondaryLabelColor)
         let valueLabel = makeLabel(value, size: 14, weight: .semibold, color: .labelColor)
@@ -1211,7 +1384,7 @@ final class RootView: NSView {
         row.spacing = 12
         row.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
         row.wantsLayer = true
-        row.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        row.layer?.backgroundColor = dynamicCGColor(.controlBackgroundColor)
         row.layer?.cornerRadius = 6
         return row
     }
@@ -1280,7 +1453,11 @@ final class RootView: NSView {
         return label
     }
 
-    private func filteredInventory() -> [DeviceViewModel] {
+    private func categoriesVisibleInDeviceList() -> Set<DeviceCategory> {
+        Set(filteredInventory().map(\.category))
+    }
+
+    private func searchedInventory() -> [DeviceViewModel] {
         let query = deviceFilterText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else {
             return snapshot.inventory
@@ -1289,6 +1466,15 @@ final class RootView: NSView {
         return snapshot.inventory.filter { device in
             searchableText(for: device).localizedCaseInsensitiveContains(query)
         }
+    }
+
+    private func filteredInventory() -> [DeviceViewModel] {
+        let devices = searchedInventory()
+        guard hideOfflineDevices else {
+            return devices
+        }
+
+        return devices.filter(\.isConnected)
     }
 
     private func searchableText(for device: DeviceViewModel) -> String {

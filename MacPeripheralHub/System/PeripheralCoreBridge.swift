@@ -11,6 +11,8 @@ struct PeripheralCoreBridgeError: LocalizedError, Equatable {
 }
 
 final class PeripheralCoreBridge: @unchecked Sendable {
+    private let databaseQueue = DispatchQueue(label: "com.theandreyzakharov.MacPeripheralHub.database")
+
     func loadInventory() throws -> [DeviceViewModel] {
         let currentDevices = try withDeviceList(operation: "Create inventory list") { currentList in
             try withDatabase(operation: "Open application database") { db in
@@ -177,15 +179,17 @@ final class PeripheralCoreBridge: @unchecked Sendable {
     }
 
     private func withDatabase<T>(operation: String, _ body: (OpaquePointer) throws -> T) throws -> T {
-        var db: OpaquePointer?
-        try check(mph_db_open_application_support(&db), operation: operation)
-        guard let db else {
-            throw makeError(status: MPH_STATUS_INTERNAL_ERROR, operation: operation)
-        }
-        defer { mph_db_close(db) }
+        try databaseQueue.sync {
+            var db: OpaquePointer?
+            try check(mph_db_open_application_support(&db), operation: operation)
+            guard let db else {
+                throw makeError(status: MPH_STATUS_INTERNAL_ERROR, operation: operation)
+            }
+            defer { mph_db_close(db) }
 
-        try check(mph_db_migrate(db), operation: "Migrate application database")
-        return try body(db)
+            try check(mph_db_migrate(db), operation: "Migrate application database")
+            return try body(db)
+        }
     }
 
     private func withDeviceList<T>(operation: String, _ body: (OpaquePointer) throws -> T) throws -> T {
