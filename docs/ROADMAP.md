@@ -445,20 +445,23 @@ Commit: `test(app): verify macOS device switching flows`
 - [x] Добавить `scripts/test_core.sh`.
 - [x] Добавить `scripts/test_all.sh`.
 - [x] Добавить `scripts/package_app.sh`, если нужен локальный `.app` artifact.
+- [x] Создавать `dist/MacPeripheralHub.app.sha256` рядом с `.app` для GitHub Release.
 - [x] Сделать scripts понятными и без скрытых глобальных зависимостей.
 
 Commit: `chore(scripts): add build and test commands`
 
 ## 28. README
 
-- [ ] Описать назначение приложения.
-- [ ] Описать поддерживаемые устройства.
-- [ ] Описать главную функцию удержания audio defaults.
-- [ ] Описать ограничения macOS по камерам/HID/USB.
-- [ ] Описать сборку проекта.
-- [ ] Описать запуск тестов.
-- [ ] Описать архитектуру Swift + C + SQLite.
-- [ ] Добавить статус версии `1.0.0`.
+- [x] Описать назначение приложения.
+- [x] Описать поддерживаемые устройства.
+- [x] Описать главную функцию удержания audio defaults.
+- [x] Описать ограничения macOS по камерам/HID/USB.
+- [x] Описать сборку проекта.
+- [x] Описать запуск тестов.
+- [x] Описать архитектуру Swift + C + SQLite.
+- [x] Добавить статус версии `1.0.0`.
+- [x] Добавить взаимозаменяемые `README.md` и `README_RU.md` с одинаковой структурой.
+- [x] Описать checksum-файл для release artifact.
 
 Commit: `docs: document MacPeripheralHub usage and architecture`
 
@@ -508,5 +511,5 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `test(core): cover profiles inventory and reconciliation`
 - [ ] `test(app): verify macOS device switching flows`
 - [x] `chore(scripts): add build and test commands`
-- [ ] `docs: document MacPeripheralHub usage and architecture`
+- [x] `docs: document MacPeripheralHub usage and architecture`
 - [ ] `release: prepare MacPeripheralHub 1.0.0`

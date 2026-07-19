@@ -5,3 +5,10 @@ scripts/package_app.sh
 
 # Готовый app после сборки:
 dist/MacPeripheralHub.app
+
+# Файл контрольных сумм для проверки bundle:
+dist/MacPeripheralHub.app.sha256
+
+# Проверить app по checksum manifest:
+cd dist
+shasum -a 256 -c MacPeripheralHub.app.sha256
