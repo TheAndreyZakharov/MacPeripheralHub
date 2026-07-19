@@ -364,6 +364,18 @@ static void test_display_mapper(void) {
 }
 
 static void test_camera_mapper(void) {
+    assert(strcmp(mph_camera_permission_status_name(MPH_CAMERA_PERMISSION_UNKNOWN), "unknown") ==
+           0);
+    assert(strcmp(mph_camera_permission_status_name(MPH_CAMERA_PERMISSION_NOT_DETERMINED),
+                  "not_determined") == 0);
+    assert(strcmp(mph_camera_permission_status_name(MPH_CAMERA_PERMISSION_RESTRICTED),
+                  "restricted") == 0);
+    assert(strcmp(mph_camera_permission_status_name(MPH_CAMERA_PERMISSION_DENIED), "denied") == 0);
+    assert(strcmp(mph_camera_permission_status_name(MPH_CAMERA_PERMISSION_AUTHORIZED),
+                  "authorized") == 0);
+    assert(strcmp(mph_camera_permission_status_name((mph_camera_permission_status_t)999),
+                  "unknown") == 0);
+
     FILE *fixture = fopen("Core/fixtures/camera_devices.tsv", "r");
     assert(fixture != NULL);
 

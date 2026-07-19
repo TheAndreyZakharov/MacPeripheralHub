@@ -5,6 +5,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
 #include <IOKit/audio/IOAudioTypes.h>
+#include <stdio.h>
 
 static void copy_nsstring(NSString *value, char *buffer, size_t capacity) {
     if (buffer == NULL || capacity == 0) {
@@ -64,6 +65,27 @@ static NSArray<AVCaptureDeviceType> *camera_discovery_device_types(void) {
     return deviceTypes;
 }
 
+mph_camera_permission_status_t mph_camera_get_permission_status(void) {
+    @autoreleasepool {
+        AVAuthorizationStatus status =
+            [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+        switch (status) {
+        case AVAuthorizationStatusNotDetermined:
+            return MPH_CAMERA_PERMISSION_NOT_DETERMINED;
+        case AVAuthorizationStatusRestricted:
+            return MPH_CAMERA_PERMISSION_RESTRICTED;
+        case AVAuthorizationStatusDenied:
+            return MPH_CAMERA_PERMISSION_DENIED;
+        case AVAuthorizationStatusAuthorized:
+            return MPH_CAMERA_PERMISSION_AUTHORIZED;
+        default:
+            return MPH_CAMERA_PERMISSION_UNKNOWN;
+        }
+    }
+
+    return MPH_CAMERA_PERMISSION_UNKNOWN;
+}
+
 static mph_status_t fill_raw_camera(AVCaptureDevice *camera,
                                     mph_camera_raw_device_t *out_raw_device) {
     if (camera == nil || out_raw_device == NULL) {
@@ -94,6 +116,16 @@ mph_status_t mph_camera_enumerate_devices(mph_device_list_t *out_devices) {
     }
 
     @autoreleasepool {
+        mph_camera_permission_status_t permission_status = mph_camera_get_permission_status();
+        if (permission_status == MPH_CAMERA_PERMISSION_DENIED ||
+            permission_status == MPH_CAMERA_PERMISSION_RESTRICTED) {
+            char message[MPH_ERROR_MESSAGE_CAPACITY];
+            snprintf(message, sizeof(message), "camera enumeration skipped: permission %s",
+                     mph_camera_permission_status_name(permission_status));
+            mph_log_message(MPH_LOG_LEVEL_INFO, "camera", message);
+            return MPH_STATUS_OK;
+        }
+
         AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession
             discoverySessionWithDeviceTypes:camera_discovery_device_types()
                                   mediaType:AVMediaTypeVideo

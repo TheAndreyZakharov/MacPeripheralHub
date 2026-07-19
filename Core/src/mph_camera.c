@@ -71,6 +71,23 @@ bool mph_camera_global_default_supported(void) {
     return false;
 }
 
+const char *mph_camera_permission_status_name(mph_camera_permission_status_t status) {
+    switch (status) {
+    case MPH_CAMERA_PERMISSION_UNKNOWN:
+        return "unknown";
+    case MPH_CAMERA_PERMISSION_NOT_DETERMINED:
+        return "not_determined";
+    case MPH_CAMERA_PERMISSION_RESTRICTED:
+        return "restricted";
+    case MPH_CAMERA_PERMISSION_DENIED:
+        return "denied";
+    case MPH_CAMERA_PERMISSION_AUTHORIZED:
+        return "authorized";
+    }
+
+    return "unknown";
+}
+
 mph_status_t mph_camera_device_id(mph_device_id_t *out_device_id,
                                   const mph_camera_raw_device_t *raw_device) {
     if (out_device_id == NULL || raw_device == NULL || raw_device->unique_id[0] == '\0') {

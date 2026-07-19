@@ -29,7 +29,7 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>MacPeripheralHub uses camera access to show connected cameras in device inventory and profiles.</string>
+	<string>MacPeripheralHub uses camera access only to list connected cameras and store profile preferences. It does not capture, record, or transmit video.</string>
 	<key>NSCameraUseContinuityCameraDeviceType</key>
 	<true/>
 	<key>NSCameraUseExternalDeviceType</key>
@@ -37,7 +37,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Andrey Zakharov. All rights reserved.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>MacPeripheralHub may use microphone access only when macOS requires permission to identify input devices. It does not record audio.</string>
+	<string>MacPeripheralHub uses microphone metadata only to show and keep selected input devices. It does not capture, record, or transmit audio.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

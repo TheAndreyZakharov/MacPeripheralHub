@@ -393,12 +393,12 @@ Commit: `chore(app): add app resources and metadata`
 
 ## 24. Permissions и privacy
 
-- [ ] Проверить, какие API требуют entitlements или usage descriptions.
+- [x] Проверить, какие API требуют entitlements или usage descriptions.
 - [x] Добавить camera usage description, если AVFoundation enumeration требует доступ.
-- [ ] Проверить microphone permission behavior.
-- [ ] Не запрашивать лишние permissions без необходимости.
-- [ ] Документировать ограничения по камерам и HID/USB управлению.
-- [ ] Убедиться, что приложение не падает при отказанных permissions.
+- [x] Проверить microphone permission behavior.
+- [x] Не запрашивать лишние permissions без необходимости.
+- [x] Документировать ограничения по камерам и HID/USB управлению.
+- [x] Убедиться, что приложение не падает при отказанных permissions.
 
 Commit: `chore(app): configure permissions and privacy strings`
 
@@ -502,7 +502,7 @@ Commit: `release: prepare MacPeripheralHub 1.0.0`
 - [x] `feat(app): add launch at login support`
 - [x] `feat(app): keep selected devices active in background`
 - [x] `chore(app): add app resources and metadata`
-- [ ] `chore(app): configure permissions and privacy strings`
+- [x] `chore(app): configure permissions and privacy strings`
 - [ ] `test(core): cover profiles inventory and reconciliation`
 - [ ] `test(app): verify macOS device switching flows`
 - [ ] `chore(scripts): add build and test commands`

@@ -23,8 +23,18 @@ typedef struct {
     bool is_connected;
 } mph_camera_raw_device_t;
 
+typedef enum {
+    MPH_CAMERA_PERMISSION_UNKNOWN = 0,
+    MPH_CAMERA_PERMISSION_NOT_DETERMINED,
+    MPH_CAMERA_PERMISSION_RESTRICTED,
+    MPH_CAMERA_PERMISSION_DENIED,
+    MPH_CAMERA_PERMISSION_AUTHORIZED
+} mph_camera_permission_status_t;
+
 void mph_camera_raw_device_init(mph_camera_raw_device_t *raw_device);
 bool mph_camera_global_default_supported(void);
+const char *mph_camera_permission_status_name(mph_camera_permission_status_t status);
+mph_camera_permission_status_t mph_camera_get_permission_status(void);
 mph_status_t mph_camera_device_id(mph_device_id_t *out_device_id,
                                   const mph_camera_raw_device_t *raw_device);
 mph_device_transport_t mph_camera_infer_transport(const mph_camera_raw_device_t *raw_device);
