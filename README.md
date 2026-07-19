@@ -9,13 +9,35 @@
 
 </div>
 
+## Harvard CS50x 2026 Final Project
+
+- Course: CS50x 2026 — Harvard University's Introduction to Computer Science
+- Project title: MacPeripheralHub
+- Author: Andrey Zakharov
+- GitHub username: `TheAndreyZakharov`
+- edX username: `TheAndreyZakharov`
+- City and country: Moscow, Russia
+- Recording date: TODO
+- Video Demo: https://www.youtube.com/watch?v=by53T03Eeds
+- Submission command: `submit50 cs50/problems/2026/x/project`
+
+<div align="center">
+
+[![MacPeripheralHub video demo placeholder](https://img.youtube.com/vi/by53T03Eeds/hqdefault.jpg)](https://www.youtube.com/watch?v=by53T03Eeds)
+
+</div>
+
+The video link above is a temporary placeholder.
+
+## Project overview
+
 MacPeripheralHub is a macOS application for seeing connected peripheral devices, switching active audio devices quickly, and keeping selected system audio defaults stable.
 
 The application is built as a normal macOS desktop app with a real window, a menu bar item, background watchers, profile storage, and direct integration with macOS system APIs.
 
 When the main window is closed with the red close button, MacPeripheralHub disappears from the Dock and continues working from the menu bar near the macOS clock.
 
-The planned public application version is `1.0.0`.
+The public application version is `1.0.0`.
 
 ## Purpose
 
@@ -86,13 +108,13 @@ Microphone and camera checks request macOS permissions only when the user starts
 
 ## Installation from GitHub Release
 
-The ready-to-use macOS application is intended to be available in the repository's GitHub Releases section.
+The ready-to-use macOS application is available from the repository's GitHub Releases section.
 
 Download the latest release assets from GitHub Releases.
 
-The release should include both the application bundle and its checksum file.
+The release includes both the application bundle and its checksum file.
 
-Expected release assets:
+Release assets:
 
     MacPeripheralHub.app.zip
     MacPeripheralHub.app.zip.sha256
@@ -408,8 +430,8 @@ The app bundle is signed with camera and audio-input entitlements so macOS can s
 
 ## Version status
 
-Current target version: `1.0.0`.
+Current application version: `1.0.0`.
 
-The app is intended to build into a full macOS `.app` bundle named `MacPeripheralHub.app`.
+The app builds into a full macOS `.app` bundle named `MacPeripheralHub.app`.
 
 Some hardware scenarios still require final manual verification on a real setup with the target USB microphone, Bluetooth headphones, displays, hubs, and sleep/wake behavior.
