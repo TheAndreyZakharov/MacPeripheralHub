@@ -68,6 +68,22 @@ static const mph_db_migration_t migrations[] = {
     {1, "initial_schema", migration_001_sql},
 };
 
+static mph_status_t prepare_statement(mph_db_t *db, const char *sql, sqlite3_stmt **out_statement);
+static mph_status_t step_done(sqlite3 *connection, sqlite3_stmt *statement);
+static mph_status_t bind_text(sqlite3_stmt *statement, int index, const char *value);
+
+static bool text_has_prefix(const char *value, const char *prefix) {
+    return value != NULL && prefix != NULL && strncmp(value, prefix, strlen(prefix)) == 0;
+}
+
+static bool known_device_row_is_unstable(const char *id, const char *display_name) {
+    return text_has_prefix(display_name, "CADefaultDeviceAggregate-") ||
+           text_has_prefix(id, "coreaudio.input:CADefaultDeviceAggregate-") ||
+           text_has_prefix(id, "coreaudio.output:CADefaultDeviceAggregate-") ||
+           text_has_prefix(id, "coreaudio.system_output:CADefaultDeviceAggregate-") ||
+           (id != NULL && text_has_prefix(id, "hid:") && strstr(id, "-r") != NULL);
+}
+
 static mph_status_t execute_sql(mph_db_t *db, const char *sql) {
     if (db == NULL || db->connection == NULL || sql == NULL) {
         return MPH_STATUS_INVALID_ARGUMENT;
@@ -83,6 +99,57 @@ static mph_status_t execute_sql(mph_db_t *db, const char *sql) {
     }
 
     return MPH_STATUS_OK;
+}
+
+static mph_status_t delete_unstable_known_devices(mph_db_t *db) {
+    sqlite3_stmt *statement = NULL;
+    mph_status_t status = prepare_statement(
+        db,
+        "DELETE FROM known_devices "
+        "WHERE display_name LIKE 'CADefaultDeviceAggregate-%' "
+        "OR id LIKE 'coreaudio.input:CADefaultDeviceAggregate-%' "
+        "OR id LIKE 'coreaudio.output:CADefaultDeviceAggregate-%' "
+        "OR id LIKE 'coreaudio.system_output:CADefaultDeviceAggregate-%' "
+        "OR id GLOB 'hid:*-r[0-9]*';",
+        &statement);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
+    status = step_done(db->connection, statement);
+    sqlite3_finalize(statement);
+    return status;
+}
+
+static mph_status_t delete_duplicate_known_devices_for(mph_db_t *db, const mph_device_t *device) {
+    sqlite3_stmt *statement = NULL;
+    mph_status_t status = prepare_statement(
+        db,
+        "DELETE FROM known_devices "
+        "WHERE id <> ? "
+        "AND is_connected = 0 "
+        "AND category = ? "
+        "AND transport = ? "
+        "AND display_name = ? "
+        "AND vendor_name = ? "
+        "AND model_name = ? "
+        "AND serial_number = ?;",
+        &statement);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
+    bind_text(statement, 1, mph_device_id_cstr(&device->id));
+    bind_text(statement, 2, mph_device_category_name(device->category));
+    bind_text(statement, 3, mph_device_transport_name(device->transport));
+    bind_text(statement, 4, device->display_name);
+    bind_text(statement, 5, device->vendor_name);
+    bind_text(statement, 6, device->model_name);
+    bind_text(statement, 7, device->serial_number);
+
+    status = step_done(db->connection, statement);
+    sqlite3_finalize(statement);
+    return status;
 }
 
 static mph_status_t prepare_statement(mph_db_t *db, const char *sql, sqlite3_stmt **out_statement) {
@@ -601,8 +668,22 @@ mph_status_t mph_db_save_known_device(mph_db_t *db, const mph_device_t *device) 
         return MPH_STATUS_INVALID_ARGUMENT;
     }
 
+    mph_status_t status = delete_unstable_known_devices(db);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
+    if (known_device_row_is_unstable(mph_device_id_cstr(&device->id), device->display_name)) {
+        return MPH_STATUS_OK;
+    }
+
+    status = delete_duplicate_known_devices_for(db, device);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
     sqlite3_stmt *statement = NULL;
-    mph_status_t status = prepare_statement(
+    status = prepare_statement(
         db,
         "INSERT INTO known_devices "
         "(id, category, transport, is_connected, display_name, vendor_name, model_name, "
@@ -659,8 +740,13 @@ mph_status_t mph_db_load_known_devices(mph_db_t *db, mph_device_list_t *out_devi
         return MPH_STATUS_INVALID_ARGUMENT;
     }
 
+    mph_status_t status = delete_unstable_known_devices(db);
+    if (!mph_status_is_ok(status)) {
+        return status;
+    }
+
     sqlite3_stmt *statement = NULL;
-    mph_status_t status = prepare_statement(
+    status = prepare_statement(
         db,
         "SELECT id, category, transport, is_connected, display_name, vendor_name, model_name, "
         "serial_number FROM known_devices ORDER BY category, display_name, id;",
@@ -683,6 +769,10 @@ mph_status_t mph_db_load_known_devices(mph_db_t *db, mph_device_list_t *out_devi
 
         mph_device_t device;
         mph_device_init(&device);
+        if (known_device_row_is_unstable(column_text(statement, 0), column_text(statement, 4))) {
+            continue;
+        }
+
         status = mph_device_id_set(&device.id, column_text(statement, 0));
         if (mph_status_is_ok(status)) {
             device.category = mph_device_category_from_name(column_text(statement, 1));

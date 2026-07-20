@@ -225,13 +225,9 @@ mph_status_t mph_hid_device_id(mph_device_id_t *out_device_id,
                            raw_device->product_id, raw_device->serial_number,
                            raw_device->usage_page, raw_device->usage);
     } else if (raw_device->vendor_id != 0 || raw_device->product_id != 0) {
-        written = snprintf(stable_value, sizeof(stable_value), "%s-v%u-p%u-u%u-%u-r%" PRIu64,
+        written = snprintf(stable_value, sizeof(stable_value), "%s-v%u-p%u-u%u-%u",
                            mph_device_category_name(category), raw_device->vendor_id,
-                           raw_device->product_id, raw_device->usage_page, raw_device->usage,
-                           raw_device->registry_id);
-    } else if (raw_device->registry_id != 0) {
-        written = snprintf(stable_value, sizeof(stable_value), "%s-r%" PRIu64,
-                           mph_device_category_name(category), raw_device->registry_id);
+                           raw_device->product_id, raw_device->usage_page, raw_device->usage);
     } else if (!text_is_empty(raw_device->product_name)) {
         written = snprintf(stable_value, sizeof(stable_value), "%s-name-%016" PRIx64 "-u%u-%u",
                            mph_device_category_name(category), fnv1a_hash(raw_device->product_name),

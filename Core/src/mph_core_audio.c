@@ -243,6 +243,17 @@ static bool audio_device_id_equal(AudioObjectID left, AudioObjectID right) {
     return left != kAudioObjectUnknown && right != kAudioObjectUnknown && left == right;
 }
 
+static bool text_has_prefix(const char *value, const char *prefix) {
+    return value != NULL && prefix != NULL && strncmp(value, prefix, strlen(prefix)) == 0;
+}
+
+static bool raw_device_is_temporary_default_aggregate(
+    const mph_core_audio_raw_device_t *raw_device) {
+    return raw_device != NULL &&
+           (text_has_prefix(raw_device->uid, "CADefaultDeviceAggregate-") ||
+            text_has_prefix(raw_device->name, "CADefaultDeviceAggregate-"));
+}
+
 static mph_status_t fill_raw_device(AudioObjectID device_id, AudioObjectID default_input,
                                     AudioObjectID default_output, AudioObjectID default_system,
                                     mph_core_audio_raw_device_t *out_raw) {
@@ -477,6 +488,10 @@ mph_status_t mph_core_audio_map_raw_device(const mph_core_audio_raw_device_t *ra
                                            mph_device_list_t *out_devices) {
     if (raw_device == NULL || out_devices == NULL || raw_device->uid[0] == '\0') {
         return MPH_STATUS_INVALID_ARGUMENT;
+    }
+
+    if (raw_device_is_temporary_default_aggregate(raw_device)) {
+        return MPH_STATUS_NOT_FOUND;
     }
 
     bool mapped = false;

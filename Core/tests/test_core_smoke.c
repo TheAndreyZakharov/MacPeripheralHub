@@ -45,6 +45,15 @@ static int sqlite_scalar_int(const char *path, const char *sql) {
     return value;
 }
 
+static void sqlite_exec_checked(const char *path, const char *sql) {
+    sqlite3 *connection = NULL;
+    assert(sqlite3_open_v2(path, &connection, SQLITE_OPEN_READWRITE, NULL) == SQLITE_OK);
+    char *error = NULL;
+    assert(sqlite3_exec(connection, sql, NULL, NULL, &error) == SQLITE_OK);
+    sqlite3_free(error);
+    sqlite3_close(connection);
+}
+
 static void watcher_test_deadline(struct timespec *out_time) {
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -347,6 +356,22 @@ static void test_core_audio_mapper(void) {
     snprintf(missing_channels.uid, sizeof(missing_channels.uid), "%s", "NoChannels");
     assert(mph_core_audio_map_raw_device(&missing_channels, list) == MPH_STATUS_NOT_FOUND);
 
+    mph_core_audio_raw_device_t temporary_aggregate;
+    mph_core_audio_raw_device_init(&temporary_aggregate);
+    snprintf(temporary_aggregate.uid, sizeof(temporary_aggregate.uid), "%s",
+             "CADefaultDeviceAggregate-48780-11");
+    snprintf(temporary_aggregate.name, sizeof(temporary_aggregate.name), "%s",
+             "CADefaultDeviceAggregate-48780-11");
+    snprintf(temporary_aggregate.manufacturer, sizeof(temporary_aggregate.manufacturer), "%s",
+             "Apple Inc.");
+    temporary_aggregate.transport = MPH_DEVICE_TRANSPORT_AGGREGATE;
+    temporary_aggregate.input_channel_count = 2;
+    temporary_aggregate.output_channel_count = 2;
+    temporary_aggregate.is_alive = false;
+    size_t before_aggregate = mph_device_list_count(list);
+    assert(mph_core_audio_map_raw_device(&temporary_aggregate, list) == MPH_STATUS_NOT_FOUND);
+    assert(mph_device_list_count(list) == before_aggregate);
+
     mph_device_list_destroy(list);
 }
 
@@ -533,6 +558,49 @@ static void test_hid_mapper(void) {
     fclose(fixture);
     assert(parsed_devices == 5);
     assert(mapped_devices == 4);
+
+    mph_hid_raw_device_t keyboard_a;
+    mph_hid_raw_device_init(&keyboard_a);
+    snprintf(keyboard_a.product_name, sizeof(keyboard_a.product_name), "%s",
+             "Alum Max Keyboard");
+    snprintf(keyboard_a.manufacturer, sizeof(keyboard_a.manufacturer), "%s", "RivieraWaves SAS");
+    snprintf(keyboard_a.transport_name, sizeof(keyboard_a.transport_name), "%s", "Bluetooth");
+    keyboard_a.vendor_id = 0x045E;
+    keyboard_a.product_id = 0x0040;
+    keyboard_a.usage_page = 1;
+    keyboard_a.usage = 6;
+    keyboard_a.registry_id = 4295392508ULL;
+    keyboard_a.is_connected = true;
+
+    mph_hid_raw_device_t keyboard_b = keyboard_a;
+    keyboard_b.registry_id = 4295417673ULL;
+
+    mph_device_t mapped_keyboard_a;
+    mph_device_t mapped_keyboard_b;
+    assert(mph_hid_map_raw_device(&keyboard_a, &mapped_keyboard_a) == MPH_STATUS_OK);
+    assert(mph_hid_map_raw_device(&keyboard_b, &mapped_keyboard_b) == MPH_STATUS_OK);
+    assert(mph_device_id_equal(&mapped_keyboard_a.id, &mapped_keyboard_b.id));
+    assert(strstr(mph_device_id_cstr(&mapped_keyboard_a.id), "-r") == NULL);
+
+    mph_hid_raw_device_t internal_a;
+    mph_hid_raw_device_init(&internal_a);
+    snprintf(internal_a.product_name, sizeof(internal_a.product_name), "%s",
+             "Apple Internal Keyboard / Trackpad");
+    snprintf(internal_a.manufacturer, sizeof(internal_a.manufacturer), "%s", "Apple");
+    internal_a.usage_page = 65280;
+    internal_a.usage = 3;
+    internal_a.registry_id = 4294969637ULL;
+    internal_a.is_connected = true;
+
+    mph_hid_raw_device_t internal_b = internal_a;
+    internal_b.registry_id = 4294969655ULL;
+
+    mph_device_t mapped_internal_a;
+    mph_device_t mapped_internal_b;
+    assert(mph_hid_map_raw_device(&internal_a, &mapped_internal_a) == MPH_STATUS_OK);
+    assert(mph_hid_map_raw_device(&internal_b, &mapped_internal_b) == MPH_STATUS_OK);
+    assert(mph_device_id_equal(&mapped_internal_a.id, &mapped_internal_b.id));
+    assert(strstr(mph_device_id_cstr(&mapped_internal_a.id), "-r") == NULL);
 }
 
 static void test_usb_mapper_and_dedup(void) {
@@ -1553,6 +1621,28 @@ static void test_sqlite_profile_storage(void) {
         mph_selection_get_role_device(&loaded_manual, MPH_DEVICE_ROLE_PREFERRED_CAMERA),
         &camera_id));
 
+    sqlite_exec_checked(
+        db_path,
+        "INSERT INTO known_devices "
+        "(id, category, transport, is_connected, display_name, vendor_name, model_name, "
+        "serial_number, last_seen_at_unix_ms) "
+        "VALUES "
+        "('coreaudio.input:CADefaultDeviceAggregate-48780-11', 'audio_input', 'aggregate', 0, "
+        "'CADefaultDeviceAggregate-48780-11', 'Apple Inc.', '', '', 1),"
+        "('hid:keyboard-v1118-p64-1-6-r4295392508', 'keyboard', 'bluetooth', 0, "
+        "'Alum Max Keyboard', 'RivieraWaves SAS', '', '', 1);");
+
+    mph_device_t keyboard;
+    mph_device_init(&keyboard);
+    assert(mph_device_id_from_parts(&keyboard.id, "hid", "keyboard-v1118-p64-u1-6") ==
+           MPH_STATUS_OK);
+    assert(mph_device_set_display_name(&keyboard, "Alum Max Keyboard") == MPH_STATUS_OK);
+    assert(mph_device_set_vendor_name(&keyboard, "RivieraWaves SAS") == MPH_STATUS_OK);
+    keyboard.category = MPH_DEVICE_CATEGORY_KEYBOARD;
+    keyboard.transport = MPH_DEVICE_TRANSPORT_BLUETOOTH;
+    mph_device_set_connection_state(&keyboard, MPH_DEVICE_CONNECTION_CONNECTED);
+    assert(mph_db_save_known_device(db, &keyboard) == MPH_STATUS_OK);
+
     mph_device_t device;
     mph_device_init(&device);
     assert(mph_device_id_from_parts(&device.id, "audio", "usb-mic") == MPH_STATUS_OK);
@@ -1577,6 +1667,20 @@ static void test_sqlite_profile_storage(void) {
     assert(loaded_device->category == MPH_DEVICE_CATEGORY_AUDIO_INPUT);
     assert(loaded_device->transport == MPH_DEVICE_TRANSPORT_USB);
     assert(loaded_device->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+    const mph_device_t *loaded_keyboard = mph_device_list_find_by_id(loaded_devices, &keyboard.id);
+    assert(loaded_keyboard != NULL);
+    assert(loaded_keyboard->connection_state == MPH_DEVICE_CONNECTION_CONNECTED);
+
+    mph_device_id_t old_aggregate_id;
+    assert(mph_device_id_set(&old_aggregate_id,
+                             "coreaudio.input:CADefaultDeviceAggregate-48780-11") ==
+           MPH_STATUS_OK);
+    assert(mph_device_list_find_by_id(loaded_devices, &old_aggregate_id) == NULL);
+
+    mph_device_id_t old_registry_hid_id;
+    assert(mph_device_id_set(&old_registry_hid_id,
+                             "hid:keyboard-v1118-p64-1-6-r4295392508") == MPH_STATUS_OK);
+    assert(mph_device_list_find_by_id(loaded_devices, &old_registry_hid_id) == NULL);
     mph_device_list_destroy(loaded_devices);
 
     assert(mph_db_delete_profile(db, "studio") == MPH_STATUS_OK);
