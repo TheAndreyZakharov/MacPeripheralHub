@@ -1,0 +1,28 @@
+flowchart TD
+    Change["Изменение audio device, wake, reconnect или Bluetooth pairing"]
+    Watcher["BackgroundServiceController и audio watcher"]
+    Debounce["Debounce нестабильного системного состояния"]
+    Current["Чтение текущих default input, output и system output"]
+    Desired["Загрузка active profile или Manual Control selection"]
+    Match["Сопоставление desired devices с текущим inventory"]
+    Decision{"Нужно вернуть defaults?"}
+    Supported{"Audio target поддерживается?"}
+    Apply["Установка default через CoreAudio"]
+    Retry["Retry with backoff, если устройство еще появляется"]
+    Stable["Выбранные defaults остаются активными"]
+    Skip["Системное состояние не меняется"]
+
+    Change --> Watcher
+    Watcher --> Debounce
+    Debounce --> Current
+    Debounce --> Desired
+    Current --> Match
+    Desired --> Match
+    Match --> Decision
+    Decision -- "нет" --> Stable
+    Decision -- "да" --> Supported
+    Supported -- "да" --> Apply
+    Apply --> Stable
+    Apply --> Retry
+    Retry --> Current
+    Supported -- "нет" --> Skip

@@ -1,0 +1,21 @@
+flowchart TD
+    Root["MacPeripheralHub repository"]
+    Root --> Xcode["MacPeripheralHub.xcodeproj"]
+    Root --> App["MacPeripheralHub/ native macOS app"]
+    Root --> Core["Core/ C core library"]
+    Root --> Storage["Storage/ SQLite migrations"]
+    Root --> Scripts["scripts/ build and release automation"]
+    Root --> Docs["docs/ product and integration notes"]
+    Root --> Assets["assets/forreadme/ README media"]
+    Root --> Diagrams["diagrams/ Mermaid sources"]
+
+    App --> AppShell["App/ entry point, delegate, main window"]
+    App --> MenuBar["MenuBar/ status item"]
+    App --> UI["UI/ Manual Control, Devices, Profiles, Settings"]
+    App --> System["System/ app state, login item, media tests, C bridge"]
+    App --> Resources["Resources/ plist, entitlements, assets"]
+
+    Core --> Headers["include/ public C API"]
+    Core --> Sources["src/ core logic and macOS adapters"]
+    Core --> Tests["tests/ C tests"]
+    Core --> Fixtures["fixtures/ synthetic devices"]

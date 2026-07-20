@@ -331,7 +331,64 @@ Microphone live monitoring и camera preview запрашивают macOS permis
 
 Build scripts оставлены как основные входные точки проекта, чтобы приложение можно было проверить, упаковать, снабдить checksum и подготовить для GitHub Releases одной командой.
 
+## Архитектурные диаграммы
+
+### project_structure_ru.mmd
+
+<div align="center">
+<img src="assets/forreadme/project_structure_ru.png" alt="project_structure_ru.mmd" width="600"/>
+</div>
+
+### system_interaction_flow_ru.mmd
+
+<div align="center">
+<img src="assets/forreadme/system_interaction_flow_ru.png" alt="system_interaction_flow_ru.mmd" width="600"/>
+</div>
+
+### audio_default_reconciliation_ru.mmd
+
+<div align="center">
+<img src="assets/forreadme/audio_default_reconciliation_ru.png" alt="audio_default_reconciliation_ru.mmd" width="600"/>
+</div>
+
+### media_checks_flow_ru.mmd
+
+<div align="center">
+<img src="assets/forreadme/media_checks_flow_ru.png" alt="media_checks_flow_ru.mmd" width="600"/>
+</div>
+
+### profile_storage_flow_ru.mmd
+
+<div align="center">
+<img src="assets/forreadme/profile_storage_flow_ru.png" alt="profile_storage_flow_ru.mmd" width="600"/>
+</div>
+
 ## Структура проекта
+
+### Дерево папок
+
+```text
+MacPeripheralHub/
+├── MacPeripheralHub/
+│   ├── App/                    Entry point, delegate и главное окно приложения
+│   ├── MenuBar/                Menu bar controller и фоновый доступ
+│   ├── UI/                     Основной tabbed AppKit interface
+│   ├── System/                 Swift state, media checks, login item и C bridge
+│   └── Resources/              Info.plist, entitlements, icon и app assets
+├── Core/
+│   ├── include/                Public C headers и module map, видимый Swift
+│   ├── src/                    C core logic и Objective-C macOS adapters
+│   ├── tests/                  C smoke и integration-style tests
+│   └── fixtures/               Synthetic device data для tests
+├── Storage/
+│   └── migrations/             SQLite schema migrations
+├── scripts/                    Build, run, stop, test и package scripts
+├── docs/                       Product notes, roadmap, privacy и integration checks
+├── assets/forreadme/           README logo, walkthrough screenshots и diagrams
+└── diagrams/                   Mermaid diagram source files
+```
+
+### Подробная карта файлов
 
     MacPeripheralHub/                                Нативное macOS AppKit-приложение
     MacPeripheralHub/App/main.swift                  Entry point приложения

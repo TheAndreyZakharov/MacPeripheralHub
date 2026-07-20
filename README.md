@@ -331,7 +331,64 @@ Closing the main window hides the Dock presence while background watchers contin
 
 Build scripts are kept as first-class project entry points so the app can be tested, packaged, checksummed, and prepared for GitHub Releases with one command.
 
+## Architecture diagrams
+
+### project_structure.mmd
+
+<div align="center">
+<img src="assets/forreadme/project_structure.png" alt="project_structure.mmd" width="600"/>
+</div>
+
+### system_interaction_flow.mmd
+
+<div align="center">
+<img src="assets/forreadme/system_interaction_flow.png" alt="system_interaction_flow.mmd" width="600"/>
+</div>
+
+### audio_default_reconciliation.mmd
+
+<div align="center">
+<img src="assets/forreadme/audio_default_reconciliation.png" alt="audio_default_reconciliation.mmd" width="600"/>
+</div>
+
+### media_checks_flow.mmd
+
+<div align="center">
+<img src="assets/forreadme/media_checks_flow.png" alt="media_checks_flow.mmd" width="600"/>
+</div>
+
+### profile_storage_flow.mmd
+
+<div align="center">
+<img src="assets/forreadme/profile_storage_flow.png" alt="profile_storage_flow.mmd" width="600"/>
+</div>
+
 ## Project structure
+
+### Folder tree
+
+```text
+MacPeripheralHub/
+├── MacPeripheralHub/
+│   ├── App/                    App entry point, delegate, and main window
+│   ├── MenuBar/                Menu bar controller and background access
+│   ├── UI/                     Main tabbed AppKit interface
+│   ├── System/                 Swift state, media checks, login item, and C bridge
+│   └── Resources/              Info.plist, entitlements, icon, and app assets
+├── Core/
+│   ├── include/                Public C headers and Swift-visible module map
+│   ├── src/                    C core logic and Objective-C macOS adapters
+│   ├── tests/                  C smoke and integration-style tests
+│   └── fixtures/               Synthetic device data for tests
+├── Storage/
+│   └── migrations/             SQLite schema migrations
+├── scripts/                    Build, run, stop, test, and package scripts
+├── docs/                       Product notes, roadmap, privacy, and integration checks
+├── assets/forreadme/           README logo, walkthrough screenshots, and diagrams
+└── diagrams/                   Mermaid diagram source files
+```
+
+### Detailed source map
 
     MacPeripheralHub/                                Native macOS AppKit application
     MacPeripheralHub/App/main.swift                  Application entry point

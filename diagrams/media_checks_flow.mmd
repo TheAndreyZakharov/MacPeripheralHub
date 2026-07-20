@@ -1,0 +1,32 @@
+flowchart TD
+    DevicesTab["Devices tab"]
+    AudioOut["Headphones, speakers, audio outputs"]
+    Mic["Microphones"]
+    Camera["Cameras"]
+    Glass["Play Glass sound"]
+    Listen["Open live monitor"]
+    Preview["Open camera preview"]
+    Mono["Optional mono mode"]
+    Meters["Per-channel level meters"]
+    Permission{"Permission required?"}
+    Request["Request macOS access"]
+    Privacy["Open Privacy Settings if denied"]
+    AVAudio["AVAudioEngine and NSSound"]
+    AVCapture["AVCaptureSession"]
+
+    DevicesTab --> AudioOut
+    DevicesTab --> Mic
+    DevicesTab --> Camera
+    AudioOut --> Glass
+    Glass --> Mono
+    Glass --> AVAudio
+    Mic --> Listen
+    Listen --> Permission
+    Permission -- "not asked" --> Request
+    Permission -- "denied" --> Privacy
+    Permission -- "allowed" --> AVAudio
+    AVAudio --> Meters
+    Listen --> Mono
+    Camera --> Preview
+    Preview --> Permission
+    Permission -- "camera allowed" --> AVCapture

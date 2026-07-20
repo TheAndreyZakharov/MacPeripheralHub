@@ -1,0 +1,25 @@
+flowchart LR
+    UI["Profiles tab and Manual Control"]
+    State["AppState"]
+    Bridge["PeripheralCoreBridge"]
+    Core["C profile logic"]
+    Store["mph_profile_store"]
+    SQLite["SQLite database"]
+    Tables["profiles, profile_devices, known_devices, aliases, active_state"]
+    Reconcile["Reconciliation engine"]
+    Audio["CoreAudio defaults"]
+
+    UI --> State
+    State --> Bridge
+    Bridge --> Core
+    Core --> Store
+    Store --> SQLite
+    SQLite --> Tables
+    Tables --> SQLite
+    SQLite --> Store
+    Store --> Core
+    Core --> Bridge
+    Bridge --> State
+    State --> UI
+    State --> Reconcile
+    Reconcile --> Audio

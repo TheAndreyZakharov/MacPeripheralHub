@@ -1,0 +1,36 @@
+flowchart LR
+    User["Пользователь"]
+    Window["Окно приложения"]
+    Menu["Пункт menu bar"]
+    State["AppState"]
+    Bridge["PeripheralCoreBridge"]
+    Core["C core"]
+    Inventory["Inventory scan"]
+    Adapters["macOS adapters"]
+    Frameworks["CoreAudio, AVFoundation, CoreGraphics, IOKit, IOHIDManager, IOBluetooth"]
+    Media["MediaTestController"]
+    Privacy["macOS TCC и Privacy Settings"]
+    Devices["Подключенная периферия"]
+
+    User --> Window
+    User --> Menu
+    Window --> State
+    Menu --> State
+    State --> Bridge
+    Bridge --> Core
+    Core --> Inventory
+    Inventory --> Adapters
+    Adapters --> Frameworks
+    Frameworks --> Devices
+    Devices --> Frameworks
+    Frameworks --> Adapters
+    Adapters --> Inventory
+    Inventory --> Core
+    Core --> Bridge
+    Bridge --> State
+    State --> Window
+    State --> Menu
+    Window --> Media
+    Media --> Privacy
+    Privacy --> Media
+    Media --> Frameworks
