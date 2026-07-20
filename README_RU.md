@@ -9,7 +9,13 @@
 
 </div>
 
-## Harvard CS50x 2026 Final Project
+<div align="center">
+
+<h2>Harvard CS50x 2026 Final Project</h2>
+
+<img src="assets/forreadme/Harvard_logo.jpg" alt="Логотип Harvard" width="600"/>
+
+</div>
 
 - Курс: CS50x 2026 — Harvard University's Introduction to Computer Science
 - Название проекта: MacPeripheralHub
@@ -17,9 +23,7 @@
 - GitHub username: `TheAndreyZakharov`
 - edX username: `TheAndreyZakharov`
 - Город и страна: Москва, Россия
-- Дата записи: TODO
 - Video Demo: https://www.youtube.com/watch?v=by53T03Eeds
-- Команда отправки: `submit50 cs50/problems/2026/x/project`
 
 <div align="center">
 
